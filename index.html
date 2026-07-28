@@ -81,7 +81,7 @@
         /* Skins Grid Container with Fixed Scroll */
         .skins-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            margin: 15px 0; max-height: 220px; overflow-y: auto; overflow-x: hidden;
+            margin: 10px 0; max-height: 200px; overflow-y: auto; overflow-x: hidden;
             width: 100%; padding: 4px; pointer-events: auto; touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -97,7 +97,7 @@
         .skin-card.locked { opacity: 0.55; }
 
         #previewCanvas {
-            width: 70px; height: 70px; margin: 0 auto 8px;
+            width: 60px; height: 60px; margin: 0 auto 6px;
             border-radius: 50%; background: rgba(0, 0, 0, 0.5); border: 2px solid var(--accent-color);
             box-shadow: 0 0 15px var(--border-color); flex-shrink: 0;
         }
@@ -200,7 +200,7 @@
         </div>
     </div>
 
-    <!-- Upgrades Shop Menu -->
+    <!-- Upgrades Shop Menu (Key Magnet removed permanently, buffer only) -->
     <div id="shop-menu" class="modal-overlay hidden">
         <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
@@ -215,7 +215,7 @@
         <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
             <div class="neon-title" style="color:#00ffaa; font-size:20px;">📜 DAILY QUESTS</div>
-            <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Complete challenges to earn bonus keys!</p>
+            <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Complete challenges to earn bonus keys (1 to 5 Keys)!</p>
             <div style="width: 100%;" id="questsContainer"></div>
         </div>
     </div>
@@ -224,8 +224,9 @@
     <div id="skins-menu" class="modal-overlay hidden">
         <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
-            <h3 style="font-size: 15px; color:var(--accent-color); margin-bottom:3px;">SKIN PREVIEW</h3>
-            <canvas id="previewCanvas" width="70" height="70"></canvas>
+            <h3 style="font-size: 14px; color:var(--accent-color); margin-bottom:2px;">SKIN PREVIEW</h3>
+            <p style="font-size:10px; color:#8899a6; margin-bottom:4px;">Scroll from here</p>
+            <canvas id="previewCanvas" width="60" height="60"></canvas>
 
             <div class="skins-grid" id="skinsContainer"></div>
             <button class="menu-btn btn-skins" onclick="uiClickSound(); unequipSkin();" style="font-size:11px; padding:8px; flex-shrink:0;">Reset Default Skin</button>
@@ -255,17 +256,19 @@
         let baseScrollSpeed = 2.45; 
         let currentScrollSpeed = 2.45;
 
-        // Upgrades Inventory / Shop Data (Key Magnet removed from permanent shop)
+        // Upgrades Inventory / Shop Data (Key Magnet fully removed from shop)
         let upgrades = {
             extraLife: { level: 0, max: 5, cost: 5, name: 'Bonus Starting Hearts ❤️', desc: 'Increase starting hearts (+1 per level)' },
             shieldBoost: { level: 0, max: 5, cost: 3, name: 'Shield Duration +', desc: '+2s extra shield protection time per level' }
         };
 
-        // Quests Data
+        // Quests Data (Rewards scaled between 1 and 5 keys)
         let quests = [
-            { id: 'survive1', desc: 'Survive for 2 minutes in a run', target: 120, current: 0, reward: 3, completed: false },
-            { id: 'keys3', desc: 'Collect 3 Keys in total runs', target: 3, current: 0, reward: 4, completed: false },
-            { id: 'score2k', desc: 'Reach 2,000 points in any run', target: 2000, current: 0, reward: 5, completed: false }
+            { id: 'survive1', desc: 'Survive for 1 minute in a run', target: 60, current: 0, reward: 2, completed: false },
+            { id: 'keys1', desc: 'Collect 1 Key in total runs', target: 1, current: 0, reward: 1, completed: false },
+            { id: 'keys5', desc: 'Collect 5 Keys in total runs', target: 5, current: 0, reward: 5, completed: false },
+            { id: 'score1k', desc: 'Reach 1,000 points in any run', target: 1000, current: 0, reward: 3, completed: false },
+            { id: 'score3k', desc: 'Reach 3,000 points in any run', target: 3000, current: 0, reward: 4, completed: false }
         ];
 
         // Robust Persistent Audio Engine
@@ -280,7 +283,6 @@
             }
         }
 
-        // UI Click Sound Effect
         function uiClickSound() {
             initAudio();
             try {
@@ -296,7 +298,6 @@
             } catch(e) {}
         }
 
-        // Lobby Background Music Banger
         function startLobbyMusic() {
             if (lobbyMusicInterval) return;
             const notes = [220, 246.94, 261.63, 329.63, 392.00, 440];
@@ -326,7 +327,6 @@
             }
         }
 
-        // Gameplay Sound Effects
         function playSound(type) {
             initAudio();
             try {
@@ -372,14 +372,24 @@
         const emojisList = ['💎','🐉','🕷️','🪵','⭐','🦈','🗿','🛒','🐆','⚡','🔥','❄️','🌌','☀️','👻','🤖','🪐','⚡','☣️','👑','☄️','🌀','🦹','💀','🦅','🥷','🐲','🐺','🐅','🐍','💎','👹','👼','☢️','✨','🦠','💻','🕳️','🗡️','⏳','🚀','👽','🦾','💣','🌊','🌋','⚡','🧊','🌠','♾️','🔮','🛡️','🗡️','👑','🔥','⚡','💎','🌟','💫','☄️','💥','🌀','🔮','🧿','🔭','🛰️','🛸','🚀','🪐','🌙','⭐','☀️','⚡','🔥','💧','🌊','❄️','⚡','🌪️','🌋','🧨','💣','🗡️','⚔️','🛡️','🏹','🔧','⚙️','🔩','🧱','🔮','💎','👑','🏆','🥇','🎖️','🏅','💯','🔥','⚡','💀','👻'];
         const colorsList = ['#00f2fe','#ff0055','#ff0033','#ffaa00','#0055ff','#00ffaa','#aa00ff','#ff9900','#ff3300','#ffff00','#ff4500','#00ffff','#8a2be2','#ffa500','#7fffd4','#708090','#da70d6','#adff2f','#32cd32','#ffd700','#ff6347','#00fa9a','#4b0082','#ff1493','#1e90ff','#2f4f4f','#ff8c00','#d3d3d3','#ff4500','#228b22','#00ced1','#dc143c','#fffacd','#00ff7f','#ffb6c1','#adff2f','#00ff00','#483d8b','#ff0000','#deb887','#4682b4','#39ff14','#778899','#ff4500','#1e90ff','#ff6347','#ffff33','#e0ffff','#9932cc','#ff1493'];
 
+        // Skins with custom pricing spread across 10, 20, 25, 30 keys, milestones, missions, and rank
         const skins = [];
+        const pricePool = [10, 20, 25, 30];
         for (let i = 1; i <= 110; i++) {
             let id = i === 1 ? 'default' : `skin_${i}`;
             let name = i === 1 ? 'Aether Core' : `Neon Vanguard #${i}`;
             let emoji = emojisList[(i - 1) % emojisList.length];
             let color = colorsList[(i - 1) % colorsList.length];
-            let req = i === 1 ? 'Free Default' : `${(i - 1) * 2} Keys 🔑`;
-            let price = i === 1 ? 0 : (i - 1) * 2;
+            
+            let price = 0;
+            let req = 'Free Default';
+            if (i > 1) {
+                price = pricePool[(i - 2) % pricePool.length];
+                if (i % 5 === 0) req = `Milestone: ${i * 200} pts`;
+                else if (i % 3 === 0) req = `Mission Unlock (${price} 🔑)`;
+                else if (i % 7 === 0) req = `Rank Tier Unlock`;
+                else req = `${price} Keys 🔑`;
+            }
             skins.push({ id, name, emoji, color, req, price, unlocked: i === 1 });
         }
         skins.find(s => s.id === 'skin_2').name = 'Abyssal Beast';
@@ -510,8 +520,10 @@
             quests.forEach(q => {
                 if (!q.completed) {
                     if (q.id === 'survive1' && playTimeSeconds >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'keys3' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'score2k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'keys1' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'keys5' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'score1k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'score3k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
                 }
             });
 
@@ -629,17 +641,17 @@
             cancelAnimationFrame(previewAnimId);
 
             function pLoop() {
-                pCtx.clearRect(0, 0, 70, 70);
+                pCtx.clearRect(0, 0, 60, 60);
                 previewAngle += 0.08;
-                const r = 14 + Math.sin(previewAngle) * 2;
+                const r = 12 + Math.sin(previewAngle) * 2;
 
                 pCtx.shadowBlur = 12; pCtx.shadowColor = skinObj.color;
                 pCtx.fillStyle = '#ffffff';
-                pCtx.beginPath(); pCtx.arc(35, 35, r, 0, Math.PI * 2); pCtx.fill();
+                pCtx.beginPath(); pCtx.arc(30, 30, r, 0, Math.PI * 2); pCtx.fill();
 
                 pCtx.shadowBlur = 0;
                 pCtx.font = '14px serif'; pCtx.textAlign = 'center'; pCtx.textBaseline = 'middle';
-                pCtx.fillText(skinObj.emoji, 35, 35);
+                pCtx.fillText(skinObj.emoji, 30, 30);
 
                 previewAnimId = requestAnimationFrame(pLoop);
             }
@@ -652,7 +664,7 @@
             skins.forEach(s => {
                 const card = document.createElement('div');
                 card.className = `skin-card ${player.skin === s.id ? 'active' : ''} ${!s.unlocked ? 'locked' : ''}`;
-                let actionText = s.unlocked ? 'Equipped/Owned' : `Exchange: ${s.price} 🔑`;
+                let actionText = s.unlocked ? 'Equipped/Owned' : `Exchange: ${s.price > 0 ? s.price + ' 🔑' : s.req}`;
                 card.innerHTML = `<div style="font-size:11px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:9px; color:${s.unlocked ? '#00ffaa' : '#ffd700'}; margin-top:2px;">${actionText}</div>`;
                 card.onclick = () => {
                     animatePreview(s);
@@ -660,14 +672,14 @@
                         player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
                         saveUserData(); renderSkinsList();
                     } else {
-                        if (keysCollected >= s.price) {
+                        if (s.price > 0 && keysCollected >= s.price) {
                             keysCollected -= s.price;
                             s.unlocked = true;
                             player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
                             keyCountEl.textContent = keysCollected;
                             saveUserData(); renderSkinsList();
                         } else {
-                            alert('Not enough Keys 🔑 to unlock this skin!');
+                            alert(s.price > 0 ? 'Not enough Keys 🔑 to unlock this skin!' : 'Unlock this skin via Milestones or Missions!');
                         }
                     }
                 };
@@ -685,15 +697,30 @@
             let tx = Math.random()*(width-60)+30;
             let ty = -30;
             if (selectedGameMode === 'timeline') {
-                // Timeline mode targets flow along fixed horizontal or diagonal lanes
                 ty = Math.random() * (height * 0.6);
                 tx = -30;
             }
-            targets.push({ x: tx, y: ty, radius: 10, color: '#00f2fe', vx: selectedGameMode === 'timeline' ? (Math.random() * 2 + 2) : 0 }); 
+            
+            // Randomized point values & colors: Green (50), Blue (70), Neon random max (100)
+            let randType = Math.random();
+            let pVal = 50;
+            let pColor = '#00ff7f'; // green
+            let pRadius = 8;
+            if (randType > 0.66) {
+                pVal = 100;
+                pColor = '#00ffff'; // neon cyan / bright accent
+                pRadius = 12;
+            } else if (randType > 0.33) {
+                pVal = 70;
+                pColor = '#0055ff'; // blue
+                pRadius = 10;
+            }
+
+            targets.push({ x: tx, y: ty, radius: pRadius, color: pColor, value: pVal, vx: selectedGameMode === 'timeline' ? (Math.random() * 2 + 2) : 0 }); 
         }
+
         function spawnObstacle() {
             if (selectedGameMode === 'timeline') {
-                // Timeline mode laser obstacle
                 laserBeams.push({ x: Math.random() * (width - 100) + 50, y: 0, w: 12, h: height, warningTimer: 60, active: false });
             } else {
                 const type = Math.random() > 0.5 ? 'bar' : 'bomb';
@@ -793,13 +820,13 @@
                         t.y += currentScrollSpeed;
                     }
 
-                    ctx.fillStyle = t.color; ctx.shadowBlur = 10; ctx.shadowColor = t.color;
+                    ctx.fillStyle = t.color; ctx.shadowBlur = 12; ctx.shadowColor = t.color;
                     ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
 
                     let collectDist = player.radius + t.radius + (player.magnetActive ? 25 : 0);
                     if (Math.hypot(player.x - t.x, player.y - t.y) < collectDist) {
-                        comboMultiplier += 0.2; // Unlimited combo growth without a cap
-                        currentRunScore += Math.floor(100 * comboMultiplier); 
+                        comboMultiplier += 0.2; 
+                        currentRunScore += Math.floor(t.value * comboMultiplier); 
                         scoreEl.textContent = currentRunScore; 
                         playSound('score'); checkUnlocks();
                         targets.splice(i, 1);
