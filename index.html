@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aether Core 4K | Sound & Banger Edition</title>
+    <style>
+        :root {
+            --bg-color: #050508;
+            --card-bg: rgba(15, 15, 30, 0.95);
+            --text-color: #ffffff;
+            --accent-color: #00f2fe;
+            --border-color: rgba(0, 242, 254, 0.3);
+        }
+
+        body.light-theme {
+            --bg-color: #f0f2f5;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #111111;
+            --accent-color: #0066ff;
+            --border-color: rgba(0, 102, 255, 0.3);
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            user-select: none; -webkit-user-select: none; touch-action: none;
+        }
+        body, html {
+            width: 100%; height: 100%; overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            transition: background-color 0.3s;
+        }
+        canvas { display: block; width: 100vw; height: 100vh; }
+
+        /* HUD Header */
+        #hud {
+            position: absolute; top: 15px; left: 15px; right: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            pointer-events: none; z-index: 5;
+        }
+        .stat-box {
+            background: var(--card-bg); padding: 8px 14px; border-radius: 12px;
+            border: 1px solid var(--border-color); backdrop-filter: blur(10px);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .stat-label { font-size: 10px; letter-spacing: 1.5px; color: #8899a6; text-transform: uppercase; }
+        .stat-val { font-size: 22px; font-weight: 800; color: var(--accent-color); }
+        
+        /* Rank Badge & Dynamic Aura Styles */
+        .rank-container { display: flex; align-items: center; gap: 10px; }
+        .rank-badge {
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            position: relative; transition: all 0.4s ease;
+        }
+        .rank-badge svg { width: 24px; height: 24px; z-index: 2; }
+
+        /* Auras */
+        .aura-bronze { background: #cd7f32; box-shadow: 0 0 8px rgba(205, 127, 50, 0.4); }
+        .aura-silver { background: #c0c0c0; box-shadow: 0 0 12px rgba(192, 192, 192, 0.6); animation: pulse-silver 2s infinite alternate; }
+        .aura-gold { background: #ffd700; box-shadow: 0 0 18px rgba(255, 215, 0, 0.8); animation: pulse-gold 1.5s infinite alternate; }
+        .aura-diamond { background: linear-gradient(45deg, #00f2fe, #4facfe); box-shadow: 0 0 25px #00f2fe; animation: pulse-diamond 1.2s infinite alternate; }
+        .aura-master { background: linear-gradient(45deg, #b000ff, #ff007f); box-shadow: 0 0 30px #b000ff; animation: pulse-master 1s infinite alternate; }
+        .aura-titan { background: linear-gradient(45deg, #ff2a6d, #ff9900); box-shadow: 0 0 35px #ff2a6d; animation: pulse-titan 0.8s infinite alternate; }
+        .aura-legend { background: linear-gradient(45deg, #00f2fe, #ff007f, #ffd700); box-shadow: 0 0 45px #00f2fe; animation: pulse-legend 0.5s infinite alternate; }
+
+        @keyframes pulse-silver { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+        @keyframes pulse-gold { 0% { transform: scale(1); } 100% { transform: scale(1.08); } }
+        @keyframes pulse-diamond { 0% { transform: scale(1); } 100% { transform: scale(1.12); } }
+        @keyframes pulse-master { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.15) rotate(5deg); } }
+        @keyframes pulse-titan { 0% { transform: scale(1); } 100% { transform: scale(1.18); } }
+        @keyframes pulse-legend { 0% { transform: scale(1); } 50% { transform: scale(1.22) rotate(10deg); } 100% { transform: scale(1); } }
+
+        .hud-buttons { display: flex; gap: 8px; pointer-events: auto; }
+        .icon-btn {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); padding: 8px 12px; border-radius: 8px;
+            font-size: 12px; cursor: pointer; backdrop-filter: blur(8px);
+        }
+
+        /* Amazon Drawer */
+        #amazon-drawer {
+            position: absolute; right: -280px; top: 80px; width: 260px;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 15px 0 0 15px; padding: 15px; z-index: 10;
+            transition: right 0.3s ease; backdrop-filter: blur(10px);
+        }
+        #amazon-drawer.open { right: 0; }
+        .drawer-toggle {
+            position: absolute; left: -42px; top: 15px; background: #ff9900;
+            color: #000; padding: 10px; border-radius: 10px 0 0 10px;
+            font-weight: bold; cursor: pointer; border: none;
+        }
+
+        #login-reminder {
+            position: absolute; bottom: 20px; right: 20px;
+            background: rgba(20, 20, 35, 0.9); border: 1px solid #00f2fe;
+            border-radius: 12px; padding: 10px 14px; z-index: 50;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .close-reminder { background: transparent; border: none; color: #ff2a6d; font-weight: bold; cursor: pointer; }
+
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 12, 0.88); backdrop-filter: blur(12px);
+            display: flex; justify-content: center; align-items: center; z-index: 100;
+        }
+        .hidden { display: none !important; }
+
+        .neon-card {
+            background: var(--card-bg); border: 2px solid var(--accent-color);
+            border-radius: 20px; padding: 25px; width: 90%; max-width: 480px;
+            text-align: center; box-shadow: 0 0 30px var(--border-color); position: relative;
+        }
+
+        /* Powered By Neon Branding Badge */
+        .powered-by-tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            padding: 6px 16px;
+            margin-bottom: 12px;
+            border-radius: 20px;
+            background: rgba(0, 242, 254, 0.08);
+            border: 1px solid rgba(0, 242, 254, 0.5);
+            color: #00f2fe;
+            text-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+            animation: neonGlow 1.8s infinite alternate;
+        }
+
+        @keyframes neonGlow {
+            0% {
+                border-color: rgba(0, 242, 254, 0.5);
+                box-shadow: 0 0 10px rgba(0, 242, 254, 0.2), inset 0 0 5px rgba(0, 242, 254, 0.2);
+                color: #00f2fe;
+            }
+            100% {
+                border-color: rgba(255, 0, 127, 0.8);
+                box-shadow: 0 0 20px rgba(255, 0, 127, 0.5), inset 0 0 10px rgba(255, 0, 127, 0.3);
+                color: #ff007f;
+                text-shadow: 0 0 8px #ff007f, 0 0 15px #ff007f;
+            }
+        }
+
+        .neon-title {
+            font-size: 28px; font-weight: 900;
+            background: linear-gradient(45deg, var(--accent-color), #ff007f);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .skins-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin: 15px 0; max-height: 220px; overflow-y: auto;
+        }
+        .skin-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px; padding: 8px; text-align: center; cursor: pointer;
+        }
+        .skin-card.active { border-color: var(--accent-color); background: rgba(0, 242, 254, 0.1); }
+        .skin-card.locked { opacity: 0.5; cursor: not-allowed; }
+
+        #previewCanvas {
+            width: 100px; height: 100px; margin: 0 auto 10px;
+            border-radius: 50%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color);
+        }
+
+        .menu-btn {
+            width: 100%; padding: 12px; margin: 6px 0; border: none; border-radius: 10px;
+            font-weight: 800; cursor: pointer; text-transform: uppercase;
+        }
+        .btn-enter { background: linear-gradient(45deg, #00f2fe, #4facfe); color: #000; }
+        .btn-skins { background: transparent; border: 2px solid #ff007f; color: #ff007f; }
+        .btn-leave { background: rgba(255, 42, 109, 0.15); border: 1px solid #ff2a6d; color: #ff2a6d; }
+        .btn-back { position: absolute; top: 15px; left: 15px; background: transparent; border: 1px solid #8899a6; color: #8899a6; padding: 6px 12px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div class="stat-box">
+            <div>
+                <div class="stat-label">Core Energy</div>
+                <div id="score" class="stat-val">0</div>
+            </div>
+        </div>
+        <div class="hud-buttons">
+            <button class="icon-btn" onclick="playClick(); toggleTheme()">☯ Theme</button>
+            <button class="icon-btn" onclick="playClick(); toggleBg()">🎨 Map</button>
+            <button class="icon-btn" onclick="playClick(); openLogin()">👤 Login</button>
+        </div>
+        <div class="stat-box">
+            <div class="rank-container">
+                <div id="rankBadge" class="rank-badge aura-bronze"></div>
+                <div style="text-align: right;">
+                    <div class="stat-label">Rank / Trophies</div>
+                    <div id="rankText" style="font-size: 15px; font-weight: 700; color: #ffd700;">🥉 Bronze I</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Amazon Store Drawer -->
+    <div id="amazon-drawer">
+        <button class="drawer-toggle" onclick="playClick(); toggleAmazon()">🛒 STORE</button>
+        <h4 style="color:#ff9900; margin-bottom: 8px;">Amazon Gaming Gear</h4>
+        <p style="font-size:11px; color:#8899a6; margin-bottom: 10px;">Support the site & unlock the Amazon Sovereign Skin!</p>
+        <a href="https://www.amazon.com" target="_blank" onclick="playClick(); unlockAmazonSkin()" style="display:block; background:#ff9900; color:#000; padding:8px; text-align:center; border-radius:8px; font-weight:bold; text-decoration:none; font-size:12px;">Browse Deals & Unlock Skin</a>
+    </div>
+
+    <!-- Login Reminder -->
+    <div id="login-reminder">
+        <span style="font-size:11px;">🔒 Login to save game progress!</span>
+        <button class="close-reminder" onclick="playClick(); dismissLoginReminder()">✕</button>
+    </div>
+
+    <!-- Main Menu -->
+    <div id="main-menu" class="modal-overlay" onclick="initAudioOnFirstTouch()">
+        <div class="neon-card">
+            <!-- Glowing Neon Branding Header -->
+            <div class="powered-by-tag">⚡ POWERED BY AETHER CORE 4K ⚡</div>
+
+            <div class="neon-title">AETHER CORE 4K</div>
+            <p style="font-size:12px; color:#8899a6; margin-bottom:15px;">Audio & Banger Edition</p>
+
+            <button class="menu-btn btn-enter" onclick="playClick(); startGame()">⚡ Enter Game</button>
+            <button class="menu-btn btn-skins" onclick="playClick(); openSkins()">✨ Skins & Brainrots</button>
+            <button class="menu-btn btn-leave" onclick="playClick(); leaveGame()">❌ Leave Website</button>
+        </div>
+    </div>
+
+    <!-- Skins Menu -->
+    <div id="skins-menu" class="modal-overlay hidden">
+        <button class="btn-back" onclick="playClick(); openMain()">← Go Back</button>
+        <div class="neon-card">
+            <h3 style="font-size: 20px; color:var(--accent-color); margin-bottom:5px;">SKIN SELECTOR</h3>
+            <canvas id="previewCanvas" width="100" height="100"></canvas>
+
+            <div class="skins-grid" id="skinsContainer"></div>
+
+            <button class="menu-btn btn-skins" onclick="playClick(); unequipSkin()" style="font-size:11px; padding:8px;">Reset Default Skin</button>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-menu" class="modal-overlay hidden">
+        <button class="btn-back" onclick="playClick(); closeLogin()">← Go Back</button>
+        <div class="neon-card">
+            <div class="neon-title" style="font-size:22px;">ACCOUNT LOGIN</div>
+            <input type="text" id="username" placeholder="Username" style="width:100%; padding:10px; margin:10px 0; border-radius:8px; border:1px solid var(--border-color); background:rgba(0,0,0,0.2); color:#fff;">
+            <button class="menu-btn btn-enter" onclick="playClick(); saveUserLogin()">Save Progress & Login</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        // Web Audio Synthesizer Engine
+        let audioCtx;
+        let isLobbyMusicPlaying = false;
+        let lobbyMusicTimer;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function initAudioOnFirstTouch() {
+            initAudio();
+            if (!isLobbyMusicPlaying && !gameRunning) {
+                startLobbyBanger();
+            }
+        }
+
+        // Button UI Click Sound
+        function playClick() {
+            initAudio();
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        // Energy Core Collect Sound Effect
+        function playCollectSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.12); // C6
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.12);
+        }
+
+        // Hazard Hit Sound Effect
+        function playHitSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        // Synthwave Retro Lobby Banger Beat
+        function startLobbyBanger() {
+            if (isLobbyMusicPlaying || gameRunning) return;
+            isLobbyMusicPlaying = true;
+
+            const notes = [110, 110, 146.83, 130.81, 110, 164.81, 146.83, 130.81];
+            let noteIdx = 0;
+
+            function playSynthBeat() {
+                if (!isLobbyMusicPlaying || gameRunning) return;
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(notes[noteIdx], audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.18);
+
+                noteIdx = (noteIdx + 1) % notes.length;
+                lobbyMusicTimer = setTimeout(playSynthBeat, 220);
+            }
+            playSynthBeat();
+        }
+
+        function stopLobbyBanger() {
+            isLobbyMusicPlaying = false;
+            clearTimeout(lobbyMusicTimer);
+        }
+
+        // Canvas & Game Mechanics
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const rankText = document.getElementById('rankText');
+        const rankBadge = document.getElementById('rankBadge');
+
+        let width, height, dpr;
+        let score = 0;
+        let playTimeSeconds = 0;
+        let gameRunning = false;
+        let currentBgIndex = 0;
+        const bgStyles = ['#050508', '#001122', '#1a0022'];
+
+        const player = {
+            x: 0, y: 0, targetX: 0, targetY: 0, radius: 18,
+            vx: 0, vy: 0, skin: 'default', color: '#00f2fe', trail: []
+        };
+
+        const skins = [
+            { id: 'default', name: '💎 Aether Core', color: '#00f2fe', unlocked: true },
+            { id: 'spidey', name: '🕷️ Spider-Glow', color: '#ff0033', req: 'Reach Bronze I (500 pts)', unlocked: false },
+            { id: 'cap', name: '🛡️ Captain Shield', color: '#0055ff', req: 'Reach Gold I (1,500 pts)', unlocked: false },
+            { id: 'tung', name: '🪵 Tung Sahur', color: '#ffaa00', req: 'Reach Silver I (1,000 pts)', unlocked: false },
+            { id: 'shark', name: '🦈 Tralalero Shark', color: '#00ffaa', req: 'Reach Diamond (3,500 pts)', unlocked: false },
+            { id: 'sigmatron', name: '🗿 Sigmatron 9000', color: '#aa00ff', req: 'Play 120 Seconds', unlocked: false },
+            { id: 'amazon', name: '🛒 Amazon Sovereign', color: '#ff9900', req: 'Click Store Link', unlocked: false }
+        ];
+
+        let particles = [], targets = [], hazards = [];
+
+        function resize() {
+            dpr = window.devicePixelRatio || 1;
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width * dpr; canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            if (player.x === 0) { player.x = player.targetX = width / 2; player.y = player.targetY = height / 2; }
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('pointermove', (e) => { if(gameRunning){ player.targetX = e.clientX; player.targetY = e.clientY; } });
+
+        function startGame() {
+            stopLobbyBanger();
+            document.getElementById('main-menu').classList.add('hidden');
+            gameRunning = true;
+        }
+        function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
+        function openMain() { document.getElementById('skins-menu').classList.add('hidden'); document.getElementById('main-menu').classList.remove('hidden'); }
+        function leaveGame() { window.location.href = "https://www.google.com"; }
+        function toggleAmazon() { document.getElementById('amazon-drawer').classList.toggle('open'); }
+        function toggleTheme() { document.body.classList.toggle('light-theme'); }
+        function toggleBg() { currentBgIndex = (currentBgIndex + 1) % bgStyles.length; }
+
+        function openLogin() { document.getElementById('login-menu').classList.remove('hidden'); }
+        function closeLogin() { document.getElementById('login-menu').classList.add('hidden'); }
+        function saveUserLogin() {
+            const user = document.getElementById('username').value;
+            if(user) { localStorage.setItem('gameUser', user); alert('Progress Saved for ' + user); closeLogin(); }
+        }
+
+        function checkLoginReminder() {
+            const lastDismissed = localStorage.getItem('reminderDismissedTimestamp');
+            const now = Date.now();
+            if (lastDismissed && now - parseInt(lastDismissed) < 86400000) {
+                document.getElementById('login-reminder').classList.add('hidden');
+            }
+        }
+        function dismissLoginReminder() {
+            localStorage.setItem('reminderDismissedTimestamp', Date.now().toString());
+            document.getElementById('login-reminder').classList.add('hidden');
+        }
+        checkLoginReminder();
+
+        function unlockAmazonSkin() {
+            skins.find(s => s.id === 'amazon').unlocked = true;
+            alert("🛒 Amazon Sovereign Skin Unlocked!");
+        }
+
+        function checkUnlocks() {
+            if (score >= 500) skins.find(s => s.id === 'spidey').unlocked = true;
+            if (score >= 1000) skins.find(s => s.id === 'tung').unlocked = true;
+            if (score >= 1500) skins.find(s => s.id === 'cap').unlocked = true;
+            if (score >= 3500) skins.find(s => s.id === 'shark').unlocked = true;
+            if (playTimeSeconds >= 120) skins.find(s => s.id === 'sigmatron').unlocked = true;
+        }
+
+        setInterval(() => { if(gameRunning) { playTimeSeconds++; checkUnlocks(); } }, 1000);
+
+        const rankSvgIcons = {
+            shield: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+            star: `<svg viewBox="0 0 24 24" fill="#fff"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+            crown: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`,
+            godly: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`
+        };
+
+        function updateRankAura() {
+            let rankName = '🥉 Bronze I';
+            let auraClass = 'aura-bronze';
+            let iconSvg = rankSvgIcons.shield;
+
+            if (score >= 25000) { rankName = '🌌 Legend Supreme'; auraClass = 'aura-legend'; iconSvg = rankSvgIcons.godly; }
+            else if (score >= 15000) { rankName = '🪐 Titan'; auraClass = 'aura-titan'; iconSvg = rankSvgIcons.godly; }
+            else if (score >= 10000) { rankName = '⚡ Ultra Master'; auraClass = 'aura-master'; iconSvg = rankSvgIcons.crown; }
+            else if (score >= 6000) { rankName = '👑 Master'; auraClass = 'aura-master'; iconSvg = rankSvgIcons.crown; }
+            else if (score >= 3500) { rankName = '💎 Diamond'; auraClass = 'aura-diamond'; iconSvg = rankSvgIcons.star; }
+            else if (score >= 1500) { rankName = '🥇 Gold I'; auraClass = 'aura-gold'; iconSvg = rankSvgIcons.star; }
+            else if (score >= 1000) { rankName = '🥈 Silver I'; auraClass = 'aura-silver'; iconSvg = rankSvgIcons.shield; }
+            else if (score >= 500) { rankName = '🥉 Bronze II'; auraClass = 'aura-bronze'; iconSvg = rankSvgIcons.shield; }
+
+            rankText.textContent = rankName;
+            rankBadge.className = `rank-badge ${auraClass}`;
+            rankBadge.innerHTML = iconSvg;
+        }
+
+        let previewAnimId, previewAngle = 0;
+        function animatePreview(skinColor) {
+            const pCanvas = document.getElementById('previewCanvas');
+            const pCtx = pCanvas.getContext('2d');
+            cancelAnimationFrame(previewAnimId);
+
+            function pLoop() {
+                pCtx.clearRect(0, 0, 100, 100);
+                previewAngle += 0.08;
+                const radius = 18 + Math.sin(previewAngle) * 3;
+
+                pCtx.shadowBlur = 15; pCtx.shadowColor = skinColor;
+                pCtx.fillStyle = skinColor;
+                pCtx.beginPath();
+                pCtx.arc(50, 50, radius, 0, Math.PI * 2);
+                pCtx.fill();
+                previewAnimId = requestAnimationFrame(pLoop);
+            }
+            pLoop();
+        }
+
+        function renderSkinsList() {
+            const container = document.getElementById('skinsContainer');
+            container.innerHTML = '';
+            skins.forEach(s => {
+                const card = document.createElement('div');
+                card.className = `skin-card ${player.skin === s.id ? 'active' : ''} ${!s.unlocked ? 'locked' : ''}`;
+                card.innerHTML = `<div style="font-size:12px; font-weight:bold;">${s.name}</div><div style="font-size:10px; color:#8899a6;">${s.unlocked ? 'Available' : s.req}</div>`;
+                card.onclick = () => {
+                    playClick();
+                    if (s.unlocked) {
+                        player.skin = s.id; player.color = s.color;
+                        animatePreview(s.color);
+                        renderSkinsList();
+                    }
+                };
+                container.appendChild(card);
+            });
+            animatePreview(player.color);
+        }
+        function unequipSkin() { player.skin = 'default'; player.color = '#00f2fe'; animatePreview(player.color); renderSkinsList(); }
+
+        function spawnTarget() {
+            targets.push({ x: Math.random()*(width-60)+30, y: Math.random()*(height-60)+30, radius: 10, pulse: 0, color: `hsl(${Math.random()*60+160}, 100%, 60%)` });
+        }
+        function spawnHazard() {
+            hazards.push({ x: Math.random()<0.5?-20:width+20, y: Math.random()*height, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3, radius: 12 });
+        }
+        for(let i=0; i<6; i++) spawnTarget();
+        updateRankAura();
+
+        function loop() {
+            ctx.save();
+            ctx.fillStyle = bgStyles[currentBgIndex];
+            ctx.fillRect(0, 0, width, height);
+
+            if (gameRunning) {
+                player.vx = (player.targetX - player.x) * 0.12;
+                player.vy = (player.targetY - player.y) * 0.12;
+                player.x += player.vx; player.y += player.vy;
+
+                player.trail.push({ x: player.x, y: player.y });
+                if (player.trail.length > 10) player.trail.shift();
+
+                ctx.beginPath();
+                player.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
+                ctx.strokeStyle = player.color; ctx.lineWidth = player.radius * 0.6; ctx.stroke();
+
+                ctx.shadowBlur = 20; ctx.shadowColor = player.color; ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
+            }
+
+            targets.forEach((t, i) => {
+                ctx.fillStyle = t.color; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); ctx.fill();
+                if (gameRunning && Math.hypot(player.x - t.x, player.y - t.y) < player.radius + t.radius) {
+                    playCollectSound();
+                    score += 100; scoreEl.textContent = score; updateRankAura(); checkUnlocks();
+                    targets.splice(i, 1); spawnTarget();
+                    if(score % 400 === 0) spawnHazard();
+                }
+            });
+
+            hazards.forEach((h, i) => {
+                h.x += h.vx; h.y += h.vy;
+                ctx.fillStyle = '#ff2a6d'; ctx.beginPath(); ctx.arc(h.x, h.y, h.radius, 0, Math.PI*2); ctx.fill();
+                if (gameRunning && Math.hypot(player.x - h.x, player.y - h.y) < player.radius + h.radius) {
+                    playHitSound();
+                    score = Math.max(0, score - 200); scoreEl.textContent = score; updateRankAura();
+                    hazards.splice(i, 1);
+                }
+            });
+
+            ctx.restore();
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script>
+</body>
+</html>
