@@ -536,5 +536,543 @@
         }
         loop();
     </script>
+</<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aether Core 4K | Complete Edition</title>
+    <style>
+        :root {
+            --bg-color: #050508;
+            --card-bg: rgba(15, 15, 30, 0.95);
+            --text-color: #ffffff;
+            --accent-color: #00f2fe;
+            --border-color: rgba(0, 242, 254, 0.3);
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            user-select: none; -webkit-user-select: none; touch-action: none;
+        }
+        body, html {
+            width: 100%; height: 100%; overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+        }
+        canvas { display: block; width: 100vw; height: 100vh; }
+
+        /* HUD Header */
+        #hud {
+            position: absolute; top: 15px; left: 15px; right: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            pointer-events: none; z-index: 5;
+        }
+        .stat-box {
+            background: var(--card-bg); padding: 8px 12px; border-radius: 12px;
+            border: 1px solid var(--border-color); backdrop-filter: blur(10px);
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
+            pointer-events: auto;
+        }
+        .stat-label { font-size: 9px; letter-spacing: 1px; color: #8899a6; text-transform: uppercase; }
+        .stat-val { font-size: 18px; font-weight: 800; color: var(--accent-color); }
+        .hearts-val { font-size: 16px; letter-spacing: 2px; }
+
+        .hud-buttons { display: flex; gap: 6px; pointer-events: auto; }
+        .icon-btn {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); padding: 8px 12px; border-radius: 8px;
+            font-size: 11px; font-weight: bold; cursor: pointer; backdrop-filter: blur(8px);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 12, 0.92); backdrop-filter: blur(12px);
+            display: flex; justify-content: center; align-items: center; z-index: 100;
+        }
+        .hidden { display: none !important; }
+
+        .neon-card {
+            background: var(--card-bg); border: 2px solid var(--accent-color);
+            border-radius: 20px; padding: 22px; width: 90%; max-width: 480px;
+            text-align: center; box-shadow: 0 0 30px var(--border-color); position: relative;
+        }
+        .neon-title {
+            font-size: 26px; font-weight: 900;
+            background: linear-gradient(45deg, var(--accent-color), #ff007f);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* Skins Grid */
+        .skins-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin: 15px 0; max-height: 230px; overflow-y: auto; padding-right: 4px;
+        }
+        .skin-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px; padding: 10px 8px; text-align: center; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .skin-card.active { border-color: var(--accent-color); background: rgba(0, 242, 254, 0.15); box-shadow: 0 0 10px var(--border-color); }
+        .skin-card.locked { opacity: 0.55; }
+
+        #previewCanvas {
+            width: 80px; height: 80px; margin: 0 auto 10px;
+            border-radius: 50%; background: rgba(0, 0, 0, 0.5); border: 2px solid var(--accent-color);
+            box-shadow: 0 0 15px var(--border-color);
+        }
+
+        .menu-btn {
+            width: 100%; padding: 12px; margin: 6px 0; border: none; border-radius: 10px;
+            font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px;
+        }
+        .btn-enter { background: linear-gradient(45deg, #00f2fe, #4facfe); color: #000; }
+        .btn-skins { background: transparent; border: 2px solid #ff007f; color: #ff007f; }
+        .btn-leave { background: rgba(255, 42, 109, 0.15); border: 1px solid #ff2a6d; color: #ff2a6d; }
+        .btn-back { position: absolute; top: 15px; left: 15px; background: transparent; border: 1px solid #8899a6; color: #8899a6; padding: 6px 12px; border-radius: 6px; }
+
+        #login-reminder {
+            position: absolute; bottom: 15px; right: 15px;
+            background: rgba(15, 15, 30, 0.95); border: 1px solid var(--accent-color);
+            border-radius: 10px; padding: 8px 12px; z-index: 50;
+            display: flex; align-items: center; gap: 8px; font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div class="stat-box">
+            <div>
+                <div class="stat-label">⚡ Core Score</div>
+                <div id="score" class="stat-val">0</div>
+            </div>
+            <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
+                <div class="stat-label">🔑 Keys</div>
+                <div id="keyCount" class="stat-val" style="color:#ffd700;">0</div>
+            </div>
+            <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
+                <div class="stat-label">Lives</div>
+                <div id="heartsContainer" class="hearts-val">❤️❤️❤️</div>
+            </div>
+        </div>
+
+        <div class="hud-buttons">
+            <button id="lobbyBtn" class="icon-btn" style="border-color:#00f2fe; color:#00f2fe;" onclick="openMain()">🏠 Lobby</button>
+            <button id="saveBtn" class="icon-btn hide-on-play" onclick="openLogin()">👤 Save</button>
+        </div>
+    </div>
+
+    <!-- Login Reminder -->
+    <div id="login-reminder" class="hide-on-play">
+        <span id="userSaveStatus">🔒 Progress unsaved. Tap Save!</span>
+        <button onclick="document.getElementById('login-reminder').classList.add('hidden')" style="background:none; border:none; color:#ff2a6d; cursor:pointer;">✕</button>
+    </div>
+
+    <!-- Main Menu Pop-up -->
+    <div id="main-menu" class="modal-overlay">
+        <div class="neon-card">
+            <div class="neon-title">AETHER CORE 4K</div>
+            <p style="font-size:12px; color:#8899a6; margin-bottom:15px;">Vertical Neon Ascent</p>
+
+            <button class="menu-btn btn-enter" onclick="startGame()">⚡ Enter Game</button>
+            <button class="menu-btn btn-skins" onclick="openSkins()">✨ Skins & Powers</button>
+            <button class="menu-btn" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700;" onclick="openKeyInfo()">🔑 Key Vault</button>
+            <button class="menu-btn btn-leave" onclick="leaveGame()">❌ Leave Game</button>
+        </div>
+    </div>
+
+    <!-- Key Info Vault -->
+    <div id="key-menu" class="modal-overlay hidden">
+        <button class="btn-back" onclick="openMain()">← Go Back</button>
+        <div class="neon-card">
+            <div class="neon-title" style="color:#ffd700; font-size:22px;">🔑 KEY VAULT</div>
+            <p style="font-size:13px; margin:15px 0; color:#ccc;">Golden Keys spawn randomly during gameplay every 30–90 seconds. Collect 10 Keys to unlock the exclusive 🐉 Abyssal Beast Skin!</p>
+            <h3 style="color:#ffd700; font-size:20px;" id="vaultKeysText">Keys Collected: 0 🔑</h3>
+        </div>
+    </div>
+
+    <!-- Skins Pop-up with Canvas Preview -->
+    <div id="skins-menu" class="modal-overlay hidden">
+        <button class="btn-back" onclick="openMain()">← Go Back</button>
+        <div class="neon-card">
+            <h3 style="font-size: 16px; color:var(--accent-color); margin-bottom:5px;">SKIN PREVIEW</h3>
+            <canvas id="previewCanvas" width="80" height="80"></canvas>
+
+            <div class="skins-grid" id="skinsContainer"></div>
+            <button class="menu-btn btn-skins" onclick="unequipSkin()" style="font-size:11px; padding:8px;">Reset Default Skin</button>
+        </div>
+    </div>
+
+    <!-- Account Save Modal -->
+    <div id="login-menu" class="modal-overlay hidden">
+        <button class="btn-back" onclick="openMain()">← Go Back</button>
+        <div class="neon-card">
+            <div class="neon-title" style="font-size:22px;">SAVE USER PROGRESS</div>
+            <input type="text" id="username" placeholder="Enter Username" style="width:100%; padding:10px; margin:15px 0; border-radius:8px; border:1px solid var(--border-color); background:rgba(0,0,0,0.3); color:#fff;">
+            <button class="menu-btn btn-enter" onclick="saveUserLogin()">Save Progress</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const keyCountEl = document.getElementById('keyCount');
+        const heartsContainer = document.getElementById('heartsContainer');
+
+        let width, height, dpr;
+        let score = 0;
+        let keysCollected = 0;
+        let playTimeSeconds = 0;
+        let hearts = 3;
+        let gameRunning = false;
+
+        // Speed Adjustment
+        let baseScrollSpeed = 2.2;
+        let currentScrollSpeed = 2.2;
+
+        // Web Audio Synthesizer (Banger Sound FX)
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'score') {
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'key') {
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'shield') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now); osc.stop(now + 0.25);
+            } else if (type === 'hit') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            }
+        }
+
+        // Player Core Settings
+        const player = {
+            x: 0, y: 0, targetX: 0, targetY: 0, radius: 15,
+            skin: 'default', color: '#00f2fe', trail: [],
+            shieldActive: false, shieldEndTime: 0, shieldDuration: 5000 // 5 seconds
+        };
+
+        const skins = [
+            { id: 'default', name: '💎 Aether Core', color: '#00f2fe', unlocked: true },
+            { id: 'beast', name: '🐉 Abyssal Beast', color: '#ff0055', req: '10 Keys 🔑', unlocked: false },
+            { id: 'spidey', name: '🕷️ Spider-Glow', color: '#ff0033', req: 'Reach 500 pts', unlocked: false },
+            { id: 'cap', name: '🛡️ Captain Shield', color: '#0055ff', req: 'Reach 1,500 pts', unlocked: false },
+            { id: 'tung', name: '🪵 Tung Sahur', color: '#ffaa00', req: 'Reach 1,000 pts', unlocked: false },
+            { id: 'shark', name: '🦈 Tralalero Shark', color: '#00ffaa', req: 'Reach 3,500 pts', unlocked: false },
+            { id: 'sigmatron', name: '🗿 Sigmatron 9000', color: '#aa00ff', req: 'Play 120s', unlocked: false },
+            { id: 'amazon', name: '🛒 Amazon Sovereign', color: '#ff9900', req: 'Save Account', unlocked: false }
+        ];
+
+        let targets = [], obstacles = [], shields = [], keyDrops = [];
+
+        function resize() {
+            dpr = window.devicePixelRatio || 1;
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width * dpr; canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            if (player.x === 0) { player.x = player.targetX = width / 2; player.y = player.targetY = height * 0.75; }
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('pointermove', (e) => { if(gameRunning){ player.targetX = e.clientX; player.targetY = e.clientY; } });
+
+        function setGameplayUI(isPlaying) {
+            document.querySelectorAll('.hide-on-play').forEach(el => {
+                if (isPlaying) el.classList.add('hidden');
+                else el.classList.remove('hidden');
+            });
+        }
+
+        function startGame() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('skins-menu').classList.add('hidden');
+            setGameplayUI(true);
+            hearts = 3; score = 0; scoreEl.textContent = '0';
+            updateHeartsUI(); gameRunning = true;
+        }
+
+        function openMain() {
+            gameRunning = false; setGameplayUI(false);
+            document.getElementById('skins-menu').classList.add('hidden');
+            document.getElementById('login-menu').classList.add('hidden');
+            document.getElementById('key-menu').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
+        }
+
+        function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
+        function openKeyInfo() { document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; document.getElementById('main-menu').classList.add('hidden'); document.getElementById('key-menu').classList.remove('hidden'); }
+        function leaveGame() { window.location.href = "https://www.google.com"; }
+
+        function loadUserData() {
+            const data = localStorage.getItem('aetherCore_userState');
+            if (data) {
+                const parsed = JSON.parse(data);
+                score = parsed.highScore || 0;
+                keysCollected = parsed.keys || 0;
+                playTimeSeconds = parsed.playTime || 0;
+                player.skin = parsed.skin || 'default';
+                const currentSkin = skins.find(s => s.id === player.skin);
+                if (currentSkin) player.color = currentSkin.color;
+                if (parsed.unlockedSkins) {
+                    parsed.unlockedSkins.forEach(id => {
+                        const s = skins.find(k => k.id === id);
+                        if(s) s.unlocked = true;
+                    });
+                }
+                keyCountEl.textContent = keysCollected;
+                if(parsed.username) {
+                    document.getElementById('userSaveStatus').textContent = `👤 Logged in as ${parsed.username}`;
+                }
+            }
+        }
+
+        function saveUserData() {
+            const unlockedList = skins.filter(s => s.unlocked).map(s => s.id);
+            const state = {
+                username: localStorage.getItem('gameUser') || 'Player',
+                highScore: score,
+                keys: keysCollected,
+                playTime: playTimeSeconds,
+                skin: player.skin,
+                unlockedSkins: unlockedList
+            };
+            localStorage.setItem('aetherCore_userState', JSON.stringify(state));
+        }
+
+        function saveUserLogin() {
+            const user = document.getElementById('username').value;
+            if(user) {
+                localStorage.setItem('gameUser', user);
+                skins.find(s => s.id === 'amazon').unlocked = true;
+                saveUserData();
+                document.getElementById('userSaveStatus').textContent = `👤 Logged in as ${user}`;
+                openMain();
+            }
+        }
+
+        function checkUnlocks() {
+            if (score >= 500) skins.find(s => s.id === 'spidey').unlocked = true;
+            if (score >= 1000) skins.find(s => s.id === 'tung').unlocked = true;
+            if (score >= 1500) skins.find(s => s.id === 'cap').unlocked = true;
+            if (score >= 3500) skins.find(s => s.id === 'shark').unlocked = true;
+            if (playTimeSeconds >= 120) skins.find(s => s.id === 'sigmatron').unlocked = true;
+            if (keysCollected >= 10) skins.find(s => s.id === 'beast').unlocked = true;
+            saveUserData();
+        }
+
+        function updateHeartsUI() {
+            let str = ''; for(let i=0; i<hearts; i++) str += '❤️';
+            heartsContainer.textContent = str || '💀';
+        }
+
+        function triggerDamage() {
+            if (player.shieldActive) return;
+            playSound('hit');
+            hearts--; updateHeartsUI();
+            if (hearts <= 0) {
+                alert("Game Over! Returning to Lobby.");
+                openMain();
+            }
+        }
+
+        // Live Skin Preview Rendering
+        let previewAnimId, previewAngle = 0;
+        function animatePreview(skinColor) {
+            const pCanvas = document.getElementById('previewCanvas');
+            const pCtx = pCanvas.getContext('2d');
+            cancelAnimationFrame(previewAnimId);
+
+            function pLoop() {
+                pCtx.clearRect(0, 0, 80, 80);
+                previewAngle += 0.08;
+                const r = 14 + Math.sin(previewAngle) * 2;
+
+                pCtx.shadowBlur = 15; pCtx.shadowColor = skinColor;
+                pCtx.fillStyle = skinColor;
+                pCtx.beginPath(); pCtx.arc(40, 40, r, 0, Math.PI * 2); pCtx.fill();
+                previewAnimId = requestAnimationFrame(pLoop);
+            }
+            pLoop();
+        }
+
+        function renderSkinsList() {
+            const container = document.getElementById('skinsContainer');
+            container.innerHTML = '';
+            skins.forEach(s => {
+                const card = document.createElement('div');
+                card.className = `skin-card ${player.skin === s.id ? 'active' : ''} ${!s.unlocked ? 'locked' : ''}`;
+                card.innerHTML = `<div style="font-size:12px; font-weight:bold;">${s.name}</div><div style="font-size:10px; color:#8899a6; margin-top:2px;">${s.unlocked ? 'Unlocked' : s.req}</div>`;
+                card.onclick = () => {
+                    animatePreview(s.color);
+                    if (s.unlocked) {
+                        player.skin = s.id; player.color = s.color;
+                        saveUserData(); renderSkinsList();
+                    }
+                };
+                container.appendChild(card);
+            });
+            const activeSkinObj = skins.find(k => k.id === player.skin);
+            animatePreview(activeSkinObj ? activeSkinObj.color : '#00f2fe');
+        }
+        function unequipSkin() { player.skin = 'default'; player.color = '#00f2fe'; saveUserData(); animatePreview(player.color); renderSkinsList(); }
+
+        // Spawners
+        function spawnTarget() { targets.push({ x: Math.random()*(width-60)+30, y: -30, radius: 10, color: '#00f2fe' }); }
+        function spawnObstacle() {
+            const type = Math.random() > 0.5 ? 'bar' : 'bomb';
+            if (type === 'bar') {
+                const obsW = Math.random() * 60 + 50;
+                obstacles.push({ type: 'bar', x: Math.random() * (width - obsW - 40) + 20, y: -30, w: obsW, h: 12 });
+            } else {
+                obstacles.push({ type: 'bomb', x: Math.random() * (width - 60) + 30, y: -30, radius: 14 });
+            }
+        }
+        function spawnShieldItem() { shields.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
+        function spawnKeyItem() { keyDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 12 }); }
+
+        setInterval(() => { if (gameRunning) spawnShieldItem(); }, 25000);
+        setInterval(() => { if (gameRunning) spawnKeyItem(); }, 40000);
+        setInterval(() => { if (gameRunning) { playTimeSeconds++; checkUnlocks(); } }, 1000);
+
+        for(let i=0; i<5; i++) { targets.push({ x: Math.random()*(width-60)+30, y: Math.random()*height, radius: 10, color: '#00f2fe' }); }
+
+        loadUserData();
+
+        // Main Loop
+        function loop() {
+            ctx.save();
+            ctx.fillStyle = '#050508';
+            ctx.fillRect(0, 0, width, height);
+
+            const now = Date.now();
+
+            if (gameRunning) {
+                currentScrollSpeed = baseScrollSpeed + Math.min(score / 10000, 2.0);
+
+                player.x += (player.targetX - player.x) * 0.12;
+                player.y += (player.targetY - player.y) * 0.12;
+
+                player.trail.push({ x: player.x, y: player.y });
+                if (player.trail.length > 8) player.trail.shift();
+
+                ctx.beginPath();
+                player.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
+                ctx.strokeStyle = player.color; ctx.lineWidth = player.radius * 0.5; ctx.stroke();
+
+                // Player Drawing
+                ctx.shadowBlur = 15; ctx.shadowColor = player.color; ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
+
+                // 5-Second Active Shield Ring
+                if (player.shieldActive) {
+                    const remainingTime = Math.max(0, player.shieldEndTime - now);
+                    if (remainingTime <= 0) {
+                        player.shieldActive = false;
+                    } else {
+                        const progress = remainingTime / player.shieldDuration;
+                        ctx.beginPath();
+                        ctx.arc(player.x, player.y, player.radius + 8, -Math.PI/2, (-Math.PI/2) + (Math.PI * 2 * progress));
+                        ctx.strokeStyle = '#00f2fe'; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = '#00f2fe';
+                        ctx.stroke();
+                    }
+                }
+
+                if (Math.random() < 0.02) spawnTarget();
+                if (Math.random() < 0.008) spawnObstacle();
+            }
+
+            // Score Targets
+            targets.forEach((t, i) => {
+                if (gameRunning) t.y += currentScrollSpeed;
+                ctx.fillStyle = t.color; ctx.shadowBlur = 10; ctx.shadowColor = t.color;
+                ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+
+                if (gameRunning && Math.hypot(player.x - t.x, player.y - t.y) < player.radius + t.radius) {
+                    score += 100; scoreEl.textContent = score; playSound('score'); checkUnlocks();
+                    targets.splice(i, 1);
+                } else if (t.y > height + 50) targets.splice(i, 1);
+            });
+
+            // Obstacles & Bomb Emojis
+            obstacles.forEach((ob, i) => {
+                if (gameRunning) ob.y += currentScrollSpeed;
+                if (ob.type === 'bar') {
+                    ctx.fillStyle = '#ff2a6d'; ctx.shadowBlur = 8; ctx.shadowColor = '#ff2a6d';
+                    ctx.fillRect(ob.x, ob.y, ob.w, ob.h); ctx.shadowBlur = 0;
+
+                    if (gameRunning && player.x + player.radius > ob.x && player.x - player.radius < ob.x + ob.w &&
+                        player.y + player.radius > ob.y && player.y - player.radius < ob.y + ob.h) {
+                        triggerDamage(); obstacles.splice(i, 1);
+                    }
+                } else {
+                    ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('💣', ob.x, ob.y);
+
+                    if (gameRunning && Math.hypot(player.x - ob.x, player.y - ob.y) < player.radius + ob.radius) {
+                        triggerDamage(); obstacles.splice(i, 1);
+                    }
+                }
+                if (ob.y > height + 50) obstacles.splice(i, 1);
+            });
+
+            // Distinct Shield Orbs
+            shields.forEach((sh, i) => {
+                if (gameRunning) sh.y += currentScrollSpeed;
+                ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('🛡️', sh.x, sh.y);
+
+                if (gameRunning && Math.hypot(player.x - sh.x, player.y - sh.y) < player.radius + sh.radius) {
+                    player.shieldActive = true; player.shieldEndTime = Date.now() + player.shieldDuration;
+                    playSound('shield'); shields.splice(i, 1);
+                } else if (sh.y > height + 50) shields.splice(i, 1);
+            });
+
+            // Golden Keys
+            keyDrops.forEach((kd, i) => {
+                if (gameRunning) kd.y += currentScrollSpeed;
+                ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('🔑', kd.x, kd.y);
+
+                if (gameRunning && Math.hypot(player.x - kd.x, player.y - kd.y) < player.radius + kd.radius) {
+                    keysCollected++; keyCountEl.textContent = keysCollected; playSound('key'); checkUnlocks(); saveUserData();
+                    keyDrops.splice(i, 1);
+                } else if (kd.y > height + 50) keyDrops.splice(i, 1);
+            });
+
+            ctx.restore();
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script>
 </body>
 </html>
