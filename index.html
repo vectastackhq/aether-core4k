@@ -189,7 +189,7 @@
         <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
             <div class="neon-title" style="color:#ffd700; font-size:22px;">🔑 KEY VAULT</div>
-            <p style="font-size:13px; margin:15px 0; color:#ccc;">Golden Keys spawn randomly during gameplay. Collect 10 Keys to unlock the exclusive 🐉 Abyssal Beast Skin!</p>
+            <p style="font-size:13px; margin:15px 0; color:#ccc;">Golden Keys spawn randomly during gameplay. Collect Keys to exchange for massive custom skins inside Skins & Powers!</p>
             <h3 style="color:#ffd700; font-size:20px;" id="vaultKeysText">Keys Collected: 0 🔑</h3>
         </div>
     </div>
@@ -199,7 +199,7 @@
         <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
             <div class="neon-title" style="color:#ffd700; font-size:20px;">🛒 UPGRADES SHOP</div>
-            <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Spend your Keys 🔑 to buy permanent boosts!</p>
+            <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Spend your Keys 🔑 to buy permanent boosts & max levels!</p>
             <div style="width: 100%;" id="shopItemsContainer"></div>
         </div>
     </div>
@@ -243,15 +243,16 @@
         let playTimeSeconds = 0;
         let hearts = 3;
         let gameRunning = false;
+        let comboMultiplier = 1;
 
         let baseScrollSpeed = 2.45; 
         let currentScrollSpeed = 2.45;
 
-        // Upgrades Inventory / Shop Data
+        // Upgrades Inventory / Shop Data (Expanded Max Levels for hearts & shields)
         let upgrades = {
-            extraLife: { level: 0, max: 1, cost: 5, name: 'Bonus Starting Heart ❤️', desc: 'Start with 4 hearts instead of 3' },
-            shieldBoost: { level: 0, max: 3, cost: 3, name: 'Shield Duration +', desc: '+2s extra shield protection time' },
-            magnet: { level: 0, max: 1, cost: 8, name: 'Key Magnet 🧲', desc: 'Easier attraction radius for collectibles' }
+            extraLife: { level: 0, max: 5, cost: 5, name: 'Bonus Starting Hearts ❤️', desc: 'Increase starting hearts (+1 per level)' },
+            shieldBoost: { level: 0, max: 5, cost: 3, name: 'Shield Duration +', desc: '+2s extra shield protection time per level' },
+            magnet: { level: 0, max: 3, cost: 8, name: 'Key/Score Magnet 🧲', desc: 'Wider attraction radius for collectibles' }
         };
 
         // Quests Data
@@ -338,7 +339,7 @@
                     osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.2);
                     gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
                     osc.start(now); osc.stop(now + 0.2);
-                } else if (type === 'shield' || type === 'heart') {
+                } else if (type === 'shield' || type === 'heart' || type === 'magnet') {
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(400, now);
                     osc.frequency.exponentialRampToValueAtTime(800, now + 0.25);
@@ -354,67 +355,37 @@
             } catch(e) {}
         }
 
-        // Player & Skins (50+ Skins)
+        // Player & Skins (100+ Skins with Key Exchange Prices)
         const player = {
             x: 0, y: 0, targetX: 0, targetY: 0, radius: 16,
             skin: 'default', color: '#00f2fe', emoji: '💎', trail: [],
-            shieldActive: false, shieldEndTime: 0, shieldDuration: 5000
+            shieldActive: false, shieldEndTime: 0, shieldDuration: 5000,
+            magnetActive: false, magnetEndTime: 0
         };
 
-        const skins = [
-            { id: 'default', name: 'Aether Core', emoji: '💎', color: '#00f2fe', req: 'Free Default', unlocked: true },
-            { id: 'beast', name: 'Abyssal Beast', emoji: '🐉', color: '#ff0055', req: '10 Keys 🔑', unlocked: false },
-            { id: 'spidey', name: 'Spider-Glow', emoji: '🕷️', color: '#ff0033', req: '500 pts', unlocked: false },
-            { id: 'tung', name: 'Tung Sahur', emoji: '🪵', color: '#ffaa00', req: '1,000 pts', unlocked: false },
-            { id: 'cap', name: 'Vanguard Star', emoji: '⭐', color: '#0055ff', req: '1,500 pts', unlocked: false },
-            { id: 'shark', name: 'Tralalero Shark', emoji: '🦈', color: '#00ffaa', req: '2,200 pts', unlocked: false },
-            { id: 'sigmatron', name: 'Sigmatron 9000', emoji: '🗿', color: '#aa00ff', req: '3,000 pts', unlocked: false },
-            { id: 'amazon', name: 'Amazon Sovereign', emoji: '🛒', color: '#ff9900', req: 'Tap Amazon', unlocked: false },
-            { id: 'skin9', name: 'Neon Panther', emoji: '🐆', color: '#ff3300', req: '4,000 pts', unlocked: false },
-            { id: 'skin10', name: 'Cyber Samurai', emoji: '⚡', color: '#ffff00', req: '5,000 pts', unlocked: false },
-            { id: 'skin11', name: 'Phoenix Fire', emoji: '🔥', color: '#ff4500', req: '6,200 pts', unlocked: false },
-            { id: 'skin12', name: 'Ice Wraith', emoji: '❄️', color: '#00ffff', req: '7,500 pts', unlocked: false },
-            { id: 'skin13', name: 'Void Phantom', emoji: '🌌', color: '#8a2be2', req: '9,000 pts', unlocked: false },
-            { id: 'skin14', name: 'Solar Titan', emoji: '☀️', color: '#ffa500', req: '10,500 pts', unlocked: false },
-            { id: 'skin15', name: 'Quantum Ghost', emoji: '👻', color: '#7fffd4', req: '12,000 pts', unlocked: false },
-            { id: 'skin16', name: 'Mecha Stryker', emoji: '🤖', color: '#708090', req: '13,800 pts', unlocked: false },
-            { id: 'skin17', name: 'Cosmic Nebula', emoji: '🪐', color: '#da70d6', req: '15,600 pts', unlocked: false },
-            { id: 'skin18', name: 'Electro Spark', emoji: '⚡', color: '#adff2f', req: '17,500 pts', unlocked: false },
-            { id: 'skin19', name: 'Toxic Hazard', emoji: '☣️', color: '#32cd32', req: '19,500 pts', unlocked: false },
-            { id: 'skin20', name: 'Royal Crown', emoji: '👑', color: '#ffd700', req: '21,600 pts', unlocked: false },
-            { id: 'skin21', name: 'Hyper Meteor', emoji: '☄️', color: '#ff6347', req: '23,800 pts', unlocked: false },
-            { id: 'skin22', name: 'Plasma Vortex', emoji: '🌀', color: '#00fa9a', req: '26,000 pts', unlocked: false },
-            { id: 'skin23', name: 'Dark Overlord', emoji: '🦹', color: '#4b0082', req: '28,500 pts', unlocked: false },
-            { id: 'skin24', name: 'Neon Skull', emoji: '💀', color: '#ff1493', req: '31,000 pts', unlocked: false },
-            { id: 'skin25', name: 'Laser Falcon', emoji: '🦅', color: '#1e90ff', req: '33,600 pts', unlocked: false },
-            { id: 'skin26', name: 'Shadow Ninja', emoji: '🥷', color: '#2f4f4f', req: '36,300 pts', unlocked: false },
-            { id: 'skin27', name: 'Golden Dragon', emoji: '🐲', color: '#ff8c00', req: '39,100 pts', unlocked: false },
-            { id: 'skin28', name: 'Silver Wolf', emoji: '🐺', color: '#d3d3d3', req: '42,000 pts', unlocked: false },
-            { id: 'skin29', name: 'Cyber Tiger', emoji: '🐅', color: '#ff4500', req: '45,000 pts', unlocked: false },
-            { id: 'skin30', name: 'Venom Viper', emoji: '🐍', color: '#228b22', req: '48,200 pts', unlocked: false },
-            { id: 'skin31', name: 'Crystal Beast', emoji: '💎', color: '#00ced1', req: '51,500 pts', unlocked: false },
-            { id: 'skin32', name: 'Inferno Demon', emoji: '👹', color: '#dc143c', req: '55,000 pts', unlocked: false },
-            { id: 'skin33', name: 'Celestial Angel', emoji: '👼', color: '#fffacd', req: '58,600 pts', unlocked: false },
-            { id: 'skin34', name: 'Gamma Ray', emoji: '☢️', color: '#00ff7f', req: '62,300 pts', unlocked: false },
-            { id: 'skin35', name: 'Super Nova', emoji: '✨', color: '#ffb6c1', req: '66,100 pts', unlocked: false },
-            { id: 'skin36', name: 'Acid Slug', emoji: '🦠', color: '#adff2f', req: '70,000 pts', unlocked: false },
-            { id: 'skin37', name: 'Matrix Hacker', emoji: '💻', color: '#00ff00', req: '74,200 pts', unlocked: false },
-            { id: 'skin38', name: 'Gravity Wells', emoji: '🕳️', color: '#483d8b', req: '78,500 pts', unlocked: false },
-            { id: 'skin39', name: 'Laser Blade', emoji: '🗡️', color: '#ff0000', req: '83,000 pts', unlocked: false },
-            { id: 'skin40', name: 'Time Lord', emoji: '⏳', color: '#deb887', req: '87,700 pts', unlocked: false },
-            { id: 'skin41', name: 'Star Cruiser', emoji: '🚀', color: '#4682b4', req: '92,500 pts', unlocked: false },
-            { id: 'skin42', name: 'Alien Invader', emoji: '👽', color: '#39ff14', req: '97,500 pts', unlocked: false },
-            { id: 'skin43', name: 'Robot Riot', emoji: '🦾', color: '#778899', req: '102,800 pts', unlocked: false },
-            { id: 'skin44', name: 'Atomic Bomb', emoji: '💣', color: '#ff4500', req: '108,300 pts', unlocked: false },
-            { id: 'skin45', name: 'Tsunami Wave', emoji: '🌊', color: '#1e90ff', req: '114,000 pts', unlocked: false },
-            { id: 'skin46', name: 'Volcano Core', emoji: '🌋', color: '#ff6347', req: '120,000 pts', unlocked: false },
-            { id: 'skin47', name: 'Electric Eel', emoji: '⚡', color: '#ffff33', req: '126,300 pts', unlocked: false },
-            { id: 'skin48', name: 'Blizzard King', emoji: '🧊', color: '#e0ffff', req: '133,000 pts', unlocked: false },
-            { id: 'skin49', name: 'Galaxy Ranger', emoji: '🌠', color: '#9932cc', req: '140,000 pts', unlocked: false },
-            { id: 'skin50', name: 'Infinity Master', emoji: '♾️', color: '#ff1493', req: '150,000 pts', unlocked: false }
-        ];
+        const emojisList = ['💎','🐉','🕷️','🪵','⭐','🦈','🗿','🛒','🐆','⚡','🔥','❄️','🌌','☀️','👻','🤖','🪐','⚡','☣️','👑','☄️','🌀','🦹','💀','🦅','🥷','🐲','🐺','🐅','🐍','💎','👹','👼','☢️','✨','🦠','💻','🕳️','🗡️','⏳','🚀','👽','🦾','💣','🌊','🌋','⚡','🧊','🌠','♾️','🔮','🛡️','🗡️','👑','🔥','⚡','💎','🌟','💫','☄️','💥','🌀','🔮','🧿','🔭','🛰️','🛸','🚀','🪐','🌙','⭐','☀️','⚡','🔥','💧','🌊','❄️','⚡','🌪️','🌋','🧨','💣','🗡️','⚔️','🛡️','🏹','🔧','⚙️','🔩','🧱','🔮','💎','👑','🏆','🥇','🎖️','🏅','💯','🔥','⚡','💀','👻'];
+        const colorsList = ['#00f2fe','#ff0055','#ff0033','#ffaa00','#0055ff','#00ffaa','#aa00ff','#ff9900','#ff3300','#ffff00','#ff4500','#00ffff','#8a2be2','#ffa500','#7fffd4','#708090','#da70d6','#adff2f','#32cd32','#ffd700','#ff6347','#00fa9a','#4b0082','#ff1493','#1e90ff','#2f4f4f','#ff8c00','#d3d3d3','#ff4500','#228b22','#00ced1','#dc143c','#fffacd','#00ff7f','#ffb6c1','#adff2f','#00ff00','#483d8b','#ff0000','#deb887','#4682b4','#39ff14','#778899','#ff4500','#1e90ff','#ff6347','#ffff33','#e0ffff','#9932cc','#ff1493'];
 
-        let targets = [], obstacles = [], shields = [], heartDrops = [], keyDrops = [];
+        const skins = [];
+        // Generate 100+ Skins dynamically with ascending Key prices
+        for (let i = 1; i <= 110; i++) {
+            let id = i === 1 ? 'default' : `skin_${i}`;
+            let name = i === 1 ? 'Aether Core' : `Neon Vanguard #${i}`;
+            let emoji = emojisList[(i - 1) % emojisList.length];
+            let color = colorsList[(i - 1) % colorsList.length];
+            let req = i === 1 ? 'Free Default' : `${(i - 1) * 2} Keys 🔑`;
+            let price = i === 1 ? 0 : (i - 1) * 2;
+            skins.push({ id, name, emoji, color, req, price, unlocked: i === 1 });
+        }
+        // Specific manual unlock overrides
+        skins.find(s => s.id === 'skin_2').name = 'Abyssal Beast';
+        skins.find(s => s.id === 'skin_2').req = '10 Keys 🔑';
+        skins.find(s => s.id === 'skin_2').price = 10;
+        skins.find(s => s.id === 'skin_8').name = 'Amazon Sovereign';
+        skins.find(s => s.id === 'skin_8').req = 'Tap Amazon';
+        skins.find(s => s.id === 'skin_8').price = 0;
+
+        let targets = [], obstacles = [], shields = [], heartDrops = [], keyDrops = [], magnetDrops = [];
 
         function resize() {
             dpr = window.devicePixelRatio || 1;
@@ -513,7 +484,6 @@
                     }
                 }
             });
-            if (keysCollected >= 10) skins.find(s => s.id === 'beast').unlocked = true;
 
             // Check Quests progress
             quests.forEach(q => {
@@ -535,10 +505,10 @@
             document.getElementById('shop-menu').classList.add('hidden');
             document.getElementById('quests-menu').classList.add('hidden');
 
-            hearts = 3 + (upgrades.extraLife.level > 0 ? 1 : 0);
-            currentRunScore = 0; playTimeSeconds = 0; scoreEl.textContent = '0';
+            hearts = 3 + upgrades.extraLife.level;
+            currentRunScore = 0; playTimeSeconds = 0; comboMultiplier = 1; scoreEl.textContent = '0';
             timerDisplay.textContent = '00:00';
-            targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = [];
+            targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = []; magnetDrops = [];
             player.x = player.targetX = width / 2;
             player.y = player.targetY = height * 0.75;
             updateHeartsUI(); 
@@ -562,7 +532,8 @@
         function openQuests() { renderQuestsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('quests-menu').classList.remove('hidden'); }
 
         function openAmazon() {
-            skins.find(s => s.id === 'amazon').unlocked = true;
+            const amzSkin = skins.find(s => s.id === 'skin_8');
+            if(amzSkin) amzSkin.unlocked = true;
             saveUserData();
             window.open('https://www.amazon.com', '_blank');
         }
@@ -585,7 +556,7 @@
         function triggerDamage() {
             if (player.shieldActive) return;
             playSound('hit');
-            hearts--; updateHeartsUI();
+            hearts--; comboMultiplier = 1; updateHeartsUI();
             if (hearts <= 0) {
                 gameRunning = false;
                 const survivalTimeStr = formatTime(playTimeSeconds);
@@ -631,7 +602,7 @@
             });
         }
 
-        // Skins Render
+        // Skins Render & Exchange
         let previewAnimId, previewAngle = 0;
         function animatePreview(skinObj) {
             const pCanvas = document.getElementById('previewCanvas');
@@ -662,12 +633,23 @@
             skins.forEach(s => {
                 const card = document.createElement('div');
                 card.className = `skin-card ${player.skin === s.id ? 'active' : ''} ${!s.unlocked ? 'locked' : ''}`;
-                card.innerHTML = `<div style="font-size:12px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:9px; color:#8899a6; margin-top:2px;">${s.unlocked ? 'Unlocked' : s.req}</div>`;
+                let actionText = s.unlocked ? 'Equipped/Owned' : `Exchange: ${s.price} 🔑`;
+                card.innerHTML = `<div style="font-size:11px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:9px; color:${s.unlocked ? '#00ffaa' : '#ffd700'}; margin-top:2px;">${actionText}</div>`;
                 card.onclick = () => {
                     animatePreview(s);
                     if (s.unlocked) {
                         player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
                         saveUserData(); renderSkinsList();
+                    } else {
+                        if (keysCollected >= s.price) {
+                            keysCollected -= s.price;
+                            s.unlocked = true;
+                            player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
+                            keyCountEl.textContent = keysCollected;
+                            saveUserData(); renderSkinsList();
+                        } else {
+                            alert('Not enough Keys 🔑 to unlock this skin!');
+                        }
                     }
                 };
                 container.appendChild(card);
@@ -694,10 +676,12 @@
         function spawnShieldItem() { shields.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
         function spawnHeartItem() { heartDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
         function spawnKeyItem() { keyDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 12 }); }
+        function spawnMagnetItem() { magnetDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
 
         setInterval(() => { if (gameRunning) spawnShieldItem(); }, 25000);
         setInterval(() => { if (gameRunning) spawnHeartItem(); }, 90000); 
         setInterval(() => { if (gameRunning) spawnKeyItem(); }, 40000);
+        setInterval(() => { if (gameRunning) spawnMagnetItem(); }, 35000); // Random Magnet Spawner
         setInterval(() => { 
             if (gameRunning) { 
                 playTimeSeconds++; 
@@ -717,7 +701,8 @@
             const now = Date.now();
 
             if (gameRunning) {
-                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 5000, 2.0);
+                // Slightly decreased speed & obstacle ratio scaling as score gets higher
+                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 10000, 1.2);
 
                 player.x += (player.targetX - player.x) * 0.25;
                 player.y += (player.targetY - player.y) * 0.25;
@@ -736,8 +721,9 @@
                 ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(player.emoji, player.x, player.y);
 
+                // Shield duration decreased to 7 seconds base (+ upgrades)
                 if (player.shieldActive) {
-                    const duration = 5000 + (upgrades.shieldBoost.level * 2000);
+                    const duration = 7000 + (upgrades.shieldBoost.level * 2000);
                     const remainingTime = Math.max(0, player.shieldEndTime - now);
                     if (remainingTime <= 0) {
                         player.shieldActive = false;
@@ -750,24 +736,47 @@
                     }
                 }
 
-                // Slightly increased score neon balls (targets) ratio
-                if (Math.random() < 0.035) spawnTarget();
+                // Magnet buff check (lasts 5 seconds, collects nearby score neon balls)
+                if (player.magnetActive) {
+                    if (now > player.magnetEndTime) {
+                        player.magnetActive = false;
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(player.x, player.y, player.radius + 35, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+                    }
+                }
+
+                // Increased score neon balls ratio
+                if (Math.random() < 0.045) spawnTarget();
                 
-                // Slightly decreased obstacle ratio
-                const obstacleSpawnChance = 0.005 + Math.min(currentRunScore / 20000, 0.015);
+                // Slightly decreased obstacle increasing ratio
+                const obstacleSpawnChance = 0.0035 + Math.min(currentRunScore / 30000, 0.01);
                 if (Math.random() < obstacleSpawnChance) spawnObstacle();
 
                 // Targets (Score Neon Balls)
                 targets.forEach((t, i) => {
+                    // Magnet attraction logic
+                    if (player.magnetActive || (upgrades.magnet.level > 0 && Math.hypot(player.x - t.x, player.y - t.y) < 120)) {
+                        let angle = Math.atan2(player.y - t.y, player.x - t.x);
+                        t.x += Math.cos(angle) * 5;
+                        t.y += Math.sin(angle) * 5;
+                    }
+
                     t.y += currentScrollSpeed;
                     ctx.fillStyle = t.color; ctx.shadowBlur = 10; ctx.shadowColor = t.color;
                     ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
 
                     let collectDist = player.radius + t.radius + (upgrades.magnet.level > 0 ? 25 : 0);
                     if (Math.hypot(player.x - t.x, player.y - t.y) < collectDist) {
-                        currentRunScore += 100; scoreEl.textContent = currentRunScore; playSound('score'); checkUnlocks();
+                        comboMultiplier = Math.min(comboMultiplier + 0.2, 5.0);
+                        currentRunScore += Math.floor(100 * comboMultiplier); 
+                        scoreEl.textContent = currentRunScore; 
+                        playSound('score'); checkUnlocks();
                         targets.splice(i, 1);
-                    } else if (t.y > height + 50) targets.splice(i, 1);
+                    } else if (t.y > height + 50) {
+                        targets.splice(i, 1);
+                    }
                 });
 
                 // Obstacles
@@ -800,7 +809,7 @@
 
                     if (Math.hypot(player.x - sh.x, player.y - sh.y) < player.radius + sh.radius) {
                         player.shieldActive = true; 
-                        player.shieldEndTime = Date.now() + (5000 + (upgrades.shieldBoost.level * 2000));
+                        player.shieldEndTime = Date.now() + (7000 + (upgrades.shieldBoost.level * 2000));
                         playSound('shield'); shields.splice(i, 1);
                     } else if (sh.y > height + 50) shields.splice(i, 1);
                 });
@@ -826,6 +835,20 @@
                         keysCollected++; keyCountEl.textContent = keysCollected; playSound('key'); checkUnlocks(); saveUserData();
                         keyDrops.splice(i, 1);
                     } else if (kd.y > height + 50) keyDrops.splice(i, 1);
+                });
+
+                // Magnet Buff Drops (lasts 5 seconds)
+                magnetDrops.forEach((md, i) => {
+                    md.y += currentScrollSpeed;
+                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('🧲', md.x, md.y);
+
+                    if (Math.hypot(player.x - md.x, player.y - md.y) < player.radius + md.radius) {
+                        player.magnetActive = true;
+                        player.magnetEndTime = Date.now() + 5000;
+                        playSound('magnet');
+                        magnetDrops.splice(i, 1);
+                    } else if (md.y > height + 50) magnetDrops.splice(i, 1);
                 });
             }
 
