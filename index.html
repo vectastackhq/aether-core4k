@@ -60,6 +60,7 @@
         .neon-card {
             background: var(--card-bg); border: 2px solid var(--accent-color);
             border-radius: 20px; padding: 22px; width: 90%; max-width: 480px;
+            max-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
             text-align: center; box-shadow: 0 0 30px var(--border-color); position: relative;
         }
         .neon-title {
@@ -76,11 +77,15 @@
             color: var(--accent-color);
         }
 
-        /* Skins Grid */
+        /* Skins Grid Container with Perfect Scrolling */
         .skins-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            margin: 15px 0; max-height: 230px; overflow-y: auto; padding-right: 4px;
+            margin: 15px 0; max-height: 250px; overflow-y: auto; overflow-x: hidden;
+            width: 100%; padding: 4px; touch-action: pan-y;
         }
+        .skins-grid::-webkit-scrollbar { width: 6px; }
+        .skins-grid::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
         .skin-card {
             background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px; padding: 10px 8px; text-align: center; cursor: pointer;
@@ -92,7 +97,7 @@
         #previewCanvas {
             width: 80px; height: 80px; margin: 0 auto 10px;
             border-radius: 50%; background: rgba(0, 0, 0, 0.5); border: 2px solid var(--accent-color);
-            box-shadow: 0 0 15px var(--border-color);
+            box-shadow: 0 0 15px var(--border-color); flex-shrink: 0;
         }
 
         .menu-btn {
@@ -103,8 +108,9 @@
         .btn-enter { background: linear-gradient(45deg, #00f2fe, #4facfe); color: #000; }
         .btn-skins { background: transparent; border: 2px solid #ff007f; color: #ff007f; }
         .btn-amazon { background: rgba(255, 153, 0, 0.15); border: 2px solid #ff9900; color: #ff9900; }
+        .btn-coffee { background: rgba(255, 105, 180, 0.15); border: 2px solid #ff69b4; color: #ff69b4; }
         .btn-leave { background: rgba(255, 42, 109, 0.15); border: 1px solid #ff2a6d; color: #ff2a6d; }
-        .btn-back { position: absolute; top: 15px; left: 15px; background: transparent; border: 1px solid #8899a6; color: #8899a6; padding: 6px 12px; border-radius: 6px; }
+        .btn-back { position: absolute; top: 15px; left: 15px; background: transparent; border: 1px solid #8899a6; color: #8899a6; padding: 6px 12px; border-radius: 6px; z-index: 10; cursor: pointer; }
 
         .high-score-banner {
             background: rgba(0, 242, 254, 0.1); border: 1px solid var(--accent-color);
@@ -146,11 +152,12 @@
             <div class="high-score-banner" id="menuHighScore">🏆 High Score: 0</div>
             <div class="rank-badge" id="playerRankBadge">Rank: Novice 🥉</div>
 
-            <div style="margin-top: 15px;">
+            <div style="margin-top: 15px; width: 100%;">
                 <button class="menu-btn btn-enter" onclick="startGame()">⚡ Enter Game</button>
                 <button class="menu-btn btn-skins" onclick="openSkins()">✨ Skins & Powers</button>
                 <button class="menu-btn" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700;" onclick="openKeyInfo()">🔑 Key Vault</button>
                 <button class="menu-btn btn-amazon" onclick="openAmazon()">🛒 Amazon Deals</button>
+                <button class="menu-btn btn-coffee" onclick="openCoffee()">☕ Buy Me a Coffee</button>
                 <button class="menu-btn btn-leave" onclick="leaveGame()">❌ Leave Game</button>
             </div>
         </div>
@@ -174,7 +181,7 @@
             <canvas id="previewCanvas" width="80" height="80"></canvas>
 
             <div class="skins-grid" id="skinsContainer"></div>
-            <button class="menu-btn btn-skins" onclick="unequipSkin()" style="font-size:11px; padding:8px;">Reset Default Skin</button>
+            <button class="menu-btn btn-skins" onclick="unequipSkin()" style="font-size:11px; padding:8px; flex-shrink:0;">Reset Default Skin</button>
         </div>
     </div>
 
@@ -195,7 +202,6 @@
         let hearts = 3;
         let gameRunning = false;
 
-        // SPEED INCREASED BY 30%
         let baseScrollSpeed = 2.86; 
         let currentScrollSpeed = 2.86;
 
@@ -237,23 +243,65 @@
             } catch(e) {}
         }
 
-        // Player & Skins
+        // Player & Skins (50+ Skins with progressive milestones)
         const player = {
             x: 0, y: 0, targetX: 0, targetY: 0, radius: 16,
             skin: 'default', color: '#00f2fe', emoji: '💎', trail: [],
             shieldActive: false, shieldEndTime: 0, shieldDuration: 5000
         };
 
-        // ONLY 1 DEFAULT UNLOCKED SKIN
         const skins = [
             { id: 'default', name: 'Aether Core', emoji: '💎', color: '#00f2fe', req: 'Free Default', unlocked: true },
             { id: 'beast', name: 'Abyssal Beast', emoji: '🐉', color: '#ff0055', req: '10 Keys 🔑', unlocked: false },
-            { id: 'spidey', name: 'Spider-Glow', emoji: '🕷️', color: '#ff0033', req: 'Bronze Rank (500 pts)', unlocked: false },
-            { id: 'tung', name: 'Tung Sahur', emoji: '🪵', color: '#ffaa00', req: 'Silver Rank (1,000 pts)', unlocked: false },
-            { id: 'cap', name: 'Captain Shield', emoji: '🛡️', color: '#0055ff', req: 'Gold Rank (1,500 pts)', unlocked: false },
-            { id: 'shark', name: 'Tralalero Shark', emoji: '🦈', color: '#00ffaa', req: 'Diamond Rank (3,500 pts)', unlocked: false },
-            { id: 'sigmatron', name: 'Sigmatron 9000', emoji: '🗿', color: '#aa00ff', req: 'Play 120s', unlocked: false },
-            { id: 'amazon', name: 'Amazon Sovereign', emoji: '🛒', color: '#ff9900', req: 'Tap Amazon Deals', unlocked: false }
+            { id: 'spidey', name: 'Spider-Glow', emoji: '🕷️', color: '#ff0033', req: '500 pts', unlocked: false },
+            { id: 'tung', name: 'Tung Sahur', emoji: '🪵', color: '#ffaa00', req: '1,000 pts', unlocked: false },
+            { id: 'cap', name: 'Vanguard Star', emoji: '⭐', color: '#0055ff', req: '1,500 pts', unlocked: false },
+            { id: 'shark', name: 'Tralalero Shark', emoji: '🦈', color: '#00ffaa', req: '2,200 pts', unlocked: false },
+            { id: 'sigmatron', name: 'Sigmatron 9000', emoji: '🗿', color: '#aa00ff', req: '3,000 pts', unlocked: false },
+            { id: 'amazon', name: 'Amazon Sovereign', emoji: '🛒', color: '#ff9900', req: 'Tap Amazon', unlocked: false },
+            // 42 Additional Skins making 50+ total with tougher milestones
+            { id: 'skin9', name: 'Neon Panther', emoji: '🐆', color: '#ff3300', req: '4,000 pts', unlocked: false },
+            { id: 'skin10', name: 'Cyber Samurai', emoji: '⚡', color: '#ffff00', req: '5,000 pts', unlocked: false },
+            { id: 'skin11', name: 'Phoenix Fire', emoji: '🔥', color: '#ff4500', req: '6,200 pts', unlocked: false },
+            { id: 'skin12', name: 'Ice Wraith', emoji: '❄️', color: '#00ffff', req: '7,500 pts', unlocked: false },
+            { id: 'skin13', name: 'Void Phantom', emoji: '🌌', color: '#8a2be2', req: '9,000 pts', unlocked: false },
+            { id: 'skin14', name: 'Solar Titan', emoji: '☀️', color: '#ffa500', req: '10,500 pts', unlocked: false },
+            { id: 'skin15', name: 'Quantum Ghost', emoji: '👻', color: '#7fffd4', req: '12,000 pts', unlocked: false },
+            { id: 'skin16', name: 'Mecha Stryker', emoji: '🤖', color: '#708090', req: '13,800 pts', unlocked: false },
+            { id: 'skin17', name: 'Cosmic Nebula', emoji: '🪐', color: '#da70d6', req: '15,600 pts', unlocked: false },
+            { id: 'skin18', name: 'Electro Spark', emoji: '⚡', color: '#adff2f', req: '17,500 pts', unlocked: false },
+            { id: 'skin19', name: 'Toxic Hazard', emoji: '☣️', color: '#32cd32', req: '19,500 pts', unlocked: false },
+            { id: 'skin20', name: 'Royal Crown', emoji: '👑', color: '#ffd700', req: '21,600 pts', unlocked: false },
+            { id: 'skin21', name: 'Hyper Meteor', emoji: '☄️', color: '#ff6347', req: '23,800 pts', unlocked: false },
+            { id: 'skin22', name: 'Plasma Vortex', emoji: '🌀', color: '#00fa9a', req: '26,000 pts', unlocked: false },
+            { id: 'skin23', name: 'Dark Overlord', emoji: '🦹', color: '#4b0082', req: '28,500 pts', unlocked: false },
+            { id: 'skin24', name: 'Neon Skull', emoji: '💀', color: '#ff1493', req: '31,000 pts', unlocked: false },
+            { id: 'skin25', name: 'Laser Falcon', emoji: '🦅', color: '#1e90ff', req: '33,600 pts', unlocked: false },
+            { id: 'skin26', name: 'Shadow Ninja', emoji: '🥷', color: '#2f4f4f', req: '36,300 pts', unlocked: false },
+            { id: 'skin27', name: 'Golden Dragon', emoji: '🐲', color: '#ff8c00', req: '39,100 pts', unlocked: false },
+            { id: 'skin28', name: 'Silver Wolf', emoji: '🐺', color: '#d3d3d3', req: '42,000 pts', unlocked: false },
+            { id: 'skin29', name: 'Cyber Tiger', emoji: '🐅', color: '#ff4500', req: '45,000 pts', unlocked: false },
+            { id: 'skin30', name: 'Venom Viper', emoji: '🐍', color: '#228b22', req: '48,200 pts', unlocked: false },
+            { id: 'skin31', name: 'Crystal Beast', emoji: '💎', color: '#00ced1', req: '51,500 pts', unlocked: false },
+            { id: 'skin32', name: 'Inferno Demon', emoji: '👹', color: '#dc143c', req: '55,000 pts', unlocked: false },
+            { id: 'skin33', name: 'Celestial Angel', emoji: '👼', color: '#fffacd', req: '58,600 pts', unlocked: false },
+            { id: 'skin34', name: 'Gamma Ray', emoji: '☢️', color: '#00ff7f', req: '62,300 pts', unlocked: false },
+            { id: 'skin35', name: 'Super Nova', emoji: '✨', color: '#ffb6c1', req: '66,100 pts', unlocked: false },
+            { id: 'skin36', name: 'Acid Slug', emoji: '🦠', color: '#adff2f', req: '70,000 pts', unlocked: false },
+            { id: 'skin37', name: 'Matrix Hacker', emoji: '💻', color: '#00ff00', req: '74,200 pts', unlocked: false },
+            { id: 'skin38', name: 'Gravity Wells', emoji: '🕳️', color: '#483d8b', req: '78,500 pts', unlocked: false },
+            { id: 'skin39', name: 'Laser Blade', emoji: '🗡️', color: '#ff0000', req: '83,000 pts', unlocked: false },
+            { id: 'skin40', name: 'Time Lord', emoji: '⏳', color: '#deb887', req: '87,700 pts', unlocked: false },
+            { id: 'skin41', name: 'Star Cruiser', emoji: '🚀', color: '#4682b4', req: '92,500 pts', unlocked: false },
+            { id: 'skin42', name: 'Alien Invader', emoji: '👽', color: '#39ff14', req: '97,500 pts', unlocked: false },
+            { id: 'skin43', name: 'Robot Riot', emoji: '🦾', color: '#778899', req: '102,800 pts', unlocked: false },
+            { id: 'skin44', name: 'Atomic Bomb', emoji: '💣', color: '#ff4500', req: '108,300 pts', unlocked: false },
+            { id: 'skin45', name: 'Tsunami Wave', emoji: '🌊', color: '#1e90ff', req: '114,000 pts', unlocked: false },
+            { id: 'skin46', name: 'Volcano Core', emoji: '🌋', color: '#ff6347', req: '120,000 pts', unlocked: false },
+            { id: 'skin47', name: 'Electric Eel', emoji: '⚡', color: '#ffff33', req: '126,300 pts', unlocked: false },
+            { id: 'skin48', name: 'Blizzard King', emoji: '🧊', color: '#e0ffff', req: '133,000 pts', unlocked: false },
+            { id: 'skin49', name: 'Galaxy Ranger', emoji: '🌠', color: '#9932cc', req: '140,000 pts', unlocked: false },
+            { id: 'skin50', name: 'Infinity Master', emoji: '♾️', color: '#ff1493', req: '150,000 pts', unlocked: false }
         ];
 
         let targets = [], obstacles = [], shields = [], keyDrops = [];
@@ -344,11 +392,14 @@
         }
 
         function checkUnlocks() {
-            if (currentRunScore >= 500 || highScore >= 500) skins.find(s => s.id === 'spidey').unlocked = true;
-            if (currentRunScore >= 1000 || highScore >= 1000) skins.find(s => s.id === 'tung').unlocked = true;
-            if (currentRunScore >= 1500 || highScore >= 1500) skins.find(s => s.id === 'cap').unlocked = true;
-            if (currentRunScore >= 3500 || highScore >= 3500) skins.find(s => s.id === 'shark').unlocked = true;
-            if (playTimeSeconds >= 120) skins.find(s => s.id === 'sigmatron').unlocked = true;
+            skins.forEach(s => {
+                if (!s.unlocked) {
+                    if (s.req.includes('pts')) {
+                        const reqScore = parseInt(s.req.replace(/[^0-9]/g, ''));
+                        if (currentRunScore >= reqScore || highScore >= reqScore) s.unlocked = true;
+                    }
+                }
+            });
             if (keysCollected >= 10) skins.find(s => s.id === 'beast').unlocked = true;
             saveUserData();
         }
@@ -379,6 +430,9 @@
             skins.find(s => s.id === 'amazon').unlocked = true;
             saveUserData();
             window.open('https://www.amazon.com', '_blank');
+        }
+        function openCoffee() {
+            window.open('https://www.buymeacoffee.com', '_blank');
         }
         function leaveGame() { window.location.href = "https://www.google.com"; }
 
@@ -475,7 +529,6 @@
             const now = Date.now();
 
             if (gameRunning) {
-                // 30% FASTER SPEED SCALING BASED ON SCORE
                 currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 2500, 3.5);
 
                 player.x += (player.targetX - player.x) * 0.25;
@@ -492,7 +545,7 @@
                 ctx.shadowBlur = 15; ctx.shadowColor = player.color; ctx.fillStyle = '#ffffff';
                 ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
 
-                // EMOJI CENTERED DIRECTLY ON TOP OF WHITE CIRCLE
+                // Emoji Centered on Player Circle
                 ctx.shadowBlur = 0;
                 ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(player.emoji, player.x, player.y);
@@ -510,7 +563,6 @@
                     }
                 }
 
-                // SPAWN RATES (OBSTACLES NOW INCREASE WITH SCORE INSTEAD OF DECREASING)
                 if (Math.random() < 0.02) spawnTarget();
                 
                 const obstacleSpawnChance = 0.012 + Math.min(currentRunScore / 10000, 0.025);
