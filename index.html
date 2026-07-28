@@ -386,17 +386,118 @@
         const colorsList = ['#00f2fe','#ff0055','#ff0033','#ffaa00','#0055ff','#00ffaa','#aa00ff','#ff9900','#ff3300','#ffff00','#ff4500','#00ffff','#8a2be2','#ffa500','#7fffd4','#708090','#da70d6','#adff2f','#32cd32','#ffd700','#ff6347','#00fa9a','#4b0082','#ff1493','#1e90ff','#2f4f4f','#ff8c00','#d3d3d3','#ff4500','#228b22','#00ced1','#dc143c','#fffacd','#00ff7f','#ffb6c1','#adff2f','#00ff00','#483d8b','#ff0000','#deb887','#4682b4','#39ff14','#778899','#ff4500','#1e90ff','#ff6347','#ffff33','#e0ffff','#9932cc','#ff1493'];
 
         // Skins with updated names to Neon Vanguard style variants
-        const skins = [];
-        const pricePool = [10, 20, 25, 30];
-        for (let i = 1; i <= 110; i++) {
-            let id = i === 1 ? 'default' : `skin_${i}`;
-            let name = i === 1 ? 'Neon Vanguard #1' : `Neon Vanguard #${i}`;
-            let emoji = emojisList[(i - 1) % emojisList.length];
-            let color = colorsList[(i - 1) % colorsList.length];
-            
-            let price = 0;
-            let req = 'Free Default';
-            if (i > 1) {
+        const skins = [
+  // Tier 1: Neon Series
+  { id: 1, name: "Neon Vanguard #1", type: "neon", cost: 0 },
+  { id: 2, name: "Neon Viper #2", type: "neon", cost: 10 },
+  { id: 3, name: "Neon Shadow #3", type: "neon", cost: 20 },
+  { id: 4, name: "Neon Drift #4", type: "neon", cost: 25 },
+  { id: 5, name: "Neon Pulse #5", type: "neon", cost: 0 },
+  { id: 6, name: "Neon Shark #6", type: "neon", cost: 10 },
+  { id: 7, name: "Neon Apex #7", type: "neon", cost: 15 },
+  { id: 8, name: "Neon Blitz #8", type: "neon", cost: 20 },
+  { id: 9, name: "Neon Core #9", type: "neon", cost: 30 },
+  { id: 10, name: "Neon Flux #10", type: "neon", cost: 35 },
+  { id: 11, name: "Neon Ghost #11", type: "neon", cost: 40 },
+  { id: 12, name: "Neon Hive #12", type: "neon", cost: 45 },
+  { id: 13, name: "Neon Ignite #13", type: "neon", cost: 50 },
+  { id: 14, name: "Neon Jolt #14", type: "neon", cost: 55 },
+  { id: 15, name: "Neon Kinetic #15", type: "neon", cost: 60 },
+  { id: 16, name: "Neon Lunar #16", type: "neon", cost: 65 },
+  { id: 17, name: "Neon Matrix #17", type: "neon", cost: 70 },
+  { id: 18, name: "Neon Nova #18", type: "neon", cost: 75 },
+  { id: 19, name: "Neon Orbit #19", type: "neon", cost: 80 },
+  { id: 20, name: "Neon Prism #20", type: "neon", cost: 85 },
+
+  // Tier 2: Cyber Series
+  { id: 21, name: "Cyber Stalker #21", type: "cyber", cost: 10 },
+  { id: 22, name: "Cyber Rogue #22", type: "cyber", cost: 15 },
+  { id: 23, name: "Cyber Titan #23", type: "cyber", cost: 20 },
+  { id: 24, name: "Cyber Wraith #24", type: "cyber", cost: 25 },
+  { id: 25, name: "Cyber Zenith #25", type: "cyber", cost: 30 },
+  { id: 26, name: "Cyber Byte #26", type: "cyber", cost: 35 },
+  { id: 27, name: "Cyber Circuit #27", type: "cyber", cost: 40 },
+  { id: 28, name: "Cyber Drone #28", type: "cyber", cost: 45 },
+  { id: 29, name: "Cyber Echo #29", type: "cyber", cost: 50 },
+  { id: 30, name: "Cyber Glitch #30", type: "cyber", cost: 55 },
+  { id: 31, name: "Cyber Hack #31", type: "cyber", cost: 60 },
+  { id: 32, name: "Cyber Kernel #32", type: "cyber", cost: 65 },
+  { id: 33, name: "Cyber Link #33", type: "cyber", cost: 70 },
+  { id: 34, name: "Cyber Mech #34", type: "cyber", cost: 75 },
+  { id: 35, name: "Cyber Node #35", type: "cyber", cost: 80 },
+  { id: 36, name: "Cyber Overdrive #36", type: "cyber", cost: 85 },
+  { id: 37, name: "Cyber Pixel #37", type: "cyber", cost: 90 },
+  { id: 38, name: "Cyber Quantum #38", type: "cyber", cost: 95 },
+  { id: 39, name: "Cyber Router #39", type: "cyber", cost: 100 },
+  { id: 40, name: "Cyber Sync #40", type: "cyber", cost: 110 },
+
+  // Tier 3: Quantum Series
+  { id: 41, name: "Quantum Spark #41", type: "quantum", cost: 20 },
+  { id: 42, name: "Quantum Surge #42", type: "quantum", cost: 25 },
+  { id: 43, name: "Quantum Shift #43", type: "quantum", cost: 30 },
+  { id: 44, name: "Quantum Strain #44", type: "quantum", cost: 35 },
+  { id: 45, name: "Quantum Storm #45", type: "quantum", cost: 40 },
+  { id: 46, name: "Quantum Atom #46", type: "quantum", cost: 45 },
+  { id: 47, name: "Quantum Bond #47", type: "quantum", cost: 50 },
+  { id: 48, name: "Quantum Charge #48", type: "quantum", cost: 55 },
+  { id: 49, name: "Quantum Field #49", type: "quantum", cost: 60 },
+  { id: 50, name: "Quantum Gravity #50", type: "quantum", cost: 65 },
+  { id: 51, name: "Quantum Ion #51", type: "quantum", cost: 70 },
+  { id: 52, name: "Quantum Leap #52", type: "quantum", cost: 75 },
+  { id: 53, name: "Quantum Mass #53", type: "quantum", cost: 80 },
+  { id: 54, name: "Quantum Nexus #54", type: "quantum", cost: 85 },
+  { id: 55, name: "Quantum Photon #55", type: "quantum", cost: 90 },
+  { id: 56, name: "Quantum Quark #56", type: "quantum", cost: 95 },
+  { id: 57, name: "Quantum Ray #57", type: "quantum", cost: 100 },
+  { id: 58, name: "Quantum Spin #58", type: "quantum", cost: 110 },
+  { id: 59, name: "Quantum Tachyon #59", type: "quantum", cost: 120 },
+  { id: 60, name: "Quantum Void #60", type: "quantum", cost: 130 },
+
+  // Tier 4: Plasma Series
+  { id: 61, name: "Plasma Blaze #61", type: "plasma", cost: 30 },
+  { id: 62, name: "Plasma Burn #62", type: "plasma", cost: 35 },
+  { id: 63, name: "Plasma Burst #63", type: "plasma", cost: 40 },
+  { id: 64, name: "Plasma Core #64", type: "plasma", cost: 45 },
+  { id: 65, name: "Plasma Flare #65", type: "plasma", cost: 50 },
+  { id: 66, name: "Plasma Arc #66", type: "plasma", cost: 55 },
+  { id: 67, name: "Plasma Bolt #67", type: "plasma", cost: 60 },
+  { id: 68, name: "Plasma Coil #68", type: "plasma", cost: 65 },
+  { id: 69, name: "Plasma Drift #69", type: "plasma", cost: 70 },
+  { id: 70, name: "Plasma Ember #70", type: "plasma", cost: 75 },
+  { id: 71, name: "Plasma Fusion #71", type: "plasma", cost: 80 },
+  { id: 72, name: "Plasma Glow #72", type: "plasma", cost: 85 },
+  { id: 73, name: "Plasma Heat #73", type: "plasma", cost: 90 },
+  { id: 74, name: "Plasma Ignite #74", type: "plasma", cost: 95 },
+  { id: 75, name: "Plasma Jet #75", type: "plasma", cost: 100 },
+  { id: 76, name: "Plasma Loop #76", type: "plasma", cost: 110 },
+  { id: 77, name: "Plasma Pulse #77", type: "plasma", cost: 120 },
+  { id: 78, name: "Plasma Ring #78", type: "plasma", cost: 130 },
+  { id: 79, name: "Plasma Surge #79", type: "plasma", cost: 140 },
+  { id: 80, name: "Plasma Wave #80", type: "plasma", cost: 150 },
+
+  // Tier 5: Void Series
+  { id: 81, name: "Void Stalker #81", type: "void", cost: 40 },
+  { id: 82, name: "Void Phantom #82", type: "void", cost: 45 },
+  { id: 83, name: "Void Specter #83", type: "void", cost: 50 },
+  { id: 84, name: "Void Spirit #84", type: "void", cost: 55 },
+  { id: 85, name: "Void Walker #85", type: "void", cost: 60 },
+  { id: 86, name: "Void Abyss #86", type: "void", cost: 65 },
+  { id: 87, name: "Void Blackhole #87", type: "void", cost: 70 },
+  { id: 88, name: "Void Creep #88", type: "void", cost: 75 },
+  { id: 89, name: "Void Dark #89", type: "void", cost: 80 },
+  { id: 90, name: "Void Eclipse #90", type: "void", cost: 85 },
+  { id: 91, name: "Void Abyss #91", type: "void", cost: 90 },
+  { id: 92, name: "Void Horizon #92", type: "void", cost: 95 },
+  { id: 93, name: "Void Mass #93", type: "void", cost: 100 },
+  { id: 94, name: "Void Nebula #94", type: "void", cost: 110 },
+  { id: 95, name: "Void Null #95", type: "void", cost: 120 },
+  { id: 96, name: "Void Pull #96", type: "void", cost: 130 },
+  { id: 97, name: "Void Rift #97", type: "void", cost: 140 },
+  { id: 98, name: "Void Singularity #98", type: "void", cost: 150 },
+  { id: 99, name: "Void Warp #99", type: "void", cost: 175 },
+  { id: 100, name: "Void Omega #100", type: "void", cost: 200 }
+];
+
                 price = pricePool[(i - 2) % pricePool.length];
                 if (i % 5 === 0) req = `Milestone: ${i * 200} pts`;
                 else if (i % 3 === 0) req = `Mission Unlock (${price} 🔑)`;
