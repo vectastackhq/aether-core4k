@@ -62,6 +62,7 @@
             border-radius: 20px; padding: 22px; width: 90%; max-width: 480px;
             max-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
             text-align: center; box-shadow: 0 0 30px var(--border-color); position: relative;
+            overflow-y: auto;
         }
         .neon-title {
             font-size: 26px; font-weight: 900;
@@ -80,7 +81,7 @@
         /* Skins Grid Container with Fixed Scroll */
         .skins-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            margin: 15px 0; max-height: 250px; overflow-y: auto; overflow-x: hidden;
+            margin: 15px 0; max-height: 220px; overflow-y: auto; overflow-x: hidden;
             width: 100%; padding: 4px; pointer-events: auto; touch-action: pan-y;
             -webkit-overflow-scrolling: touch;
         }
@@ -96,18 +97,20 @@
         .skin-card.locked { opacity: 0.55; }
 
         #previewCanvas {
-            width: 80px; height: 80px; margin: 0 auto 10px;
+            width: 70px; height: 70px; margin: 0 auto 8px;
             border-radius: 50%; background: rgba(0, 0, 0, 0.5); border: 2px solid var(--accent-color);
             box-shadow: 0 0 15px var(--border-color); flex-shrink: 0;
         }
 
         .menu-btn {
-            width: 100%; padding: 12px; margin: 6px 0; border: none; border-radius: 10px;
-            font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px;
+            width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 10px;
+            font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 11px;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .btn-enter { background: linear-gradient(45deg, #00f2fe, #4facfe); color: #000; }
         .btn-skins { background: transparent; border: 2px solid #ff007f; color: #ff007f; }
+        .btn-shop { background: rgba(255, 215, 0, 0.15); border: 2px solid #ffd700; color: #ffd700; }
+        .btn-quests { background: rgba(0, 255, 170, 0.15); border: 2px solid #00ffaa; color: #00ffaa; }
         .btn-amazon { background: rgba(255, 153, 0, 0.15); border: 2px solid #ff9900; color: #ff9900; }
         .btn-coffee { background: rgba(255, 105, 180, 0.15); border: 2px solid #ff69b4; color: #ff69b4; }
         .btn-leave { background: rgba(255, 42, 109, 0.15); border: 1px solid #ff2a6d; color: #ff2a6d; }
@@ -115,8 +118,19 @@
 
         .high-score-banner {
             background: rgba(0, 242, 254, 0.1); border: 1px solid var(--accent-color);
-            border-radius: 10px; padding: 8px; margin: 10px 0 5px; font-size: 13px; font-weight: bold;
+            border-radius: 10px; padding: 6px; margin: 8px 0 4px; font-size: 12px; font-weight: bold;
             color: var(--accent-color);
+        }
+        
+        .quest-item {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 8px 10px; margin: 6px 0; width: 100%; text-align: left;
+            display: flex; justify-content: space-between; align-items: center; font-size: 11px;
+        }
+        .shop-item {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 8px 10px; margin: 6px 0; width: 100%; text-align: left;
+            display: flex; justify-content: space-between; align-items: center; font-size: 11px;
         }
     </style>
 </head>
@@ -144,7 +158,7 @@
         </div>
 
         <div class="hud-buttons">
-            <button id="lobbyBtn" class="icon-btn" style="border-color:#00f2fe; color:#00f2fe;" onclick="openMain()">🏠 Lobby</button>
+            <button id="lobbyBtn" class="icon-btn" style="border-color:#00f2fe; color:#00f2fe;" onclick="uiClickSound(); openMain();">🏠 Lobby</button>
         </div>
     </div>
 
@@ -152,25 +166,27 @@
     <div id="main-menu" class="modal-overlay">
         <div class="neon-card">
             <div class="neon-title">AETHER CORE 4K</div>
-            <p style="font-size:12px; color:#8899a6; margin-bottom:5px;">Vertical Neon Ascent</p>
+            <p style="font-size:11px; color:#8899a6; margin-bottom:3px;">Vertical Neon Ascent</p>
 
             <div class="high-score-banner" id="menuHighScore">🏆 High Score: 0</div>
             <div class="rank-badge" id="playerRankBadge">Rank: Novice 🥉</div>
 
-            <div style="margin-top: 15px; width: 100%;">
-                <button class="menu-btn btn-enter" onclick="startGame()">⚡ Enter Game</button>
-                <button class="menu-btn btn-skins" onclick="openSkins()">✨ Skins & Powers</button>
-                <button class="menu-btn" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700;" onclick="openKeyInfo()">🔑 Key Vault</button>
-                <button class="menu-btn btn-amazon" onclick="openAmazon()">🛒 Amazon Deals</button>
-                <button class="menu-btn btn-coffee" onclick="openCoffee()">☕ Buy Me a Coffee</button>
-                <button class="menu-btn btn-leave" onclick="leaveGame()">❌ Leave Game</button>
+            <div style="margin-top: 10px; width: 100%;">
+                <button class="menu-btn btn-enter" onclick="uiClickSound(); startGame();">⚡ Enter Game</button>
+                <button class="menu-btn btn-skins" onclick="uiClickSound(); openSkins();">✨ Skins & Powers</button>
+                <button class="menu-btn btn-shop" onclick="uiClickSound(); openShop();">🛒 Upgrades Shop</button>
+                <button class="menu-btn btn-quests" onclick="uiClickSound(); openQuests();">📜 Daily Quests</button>
+                <button class="menu-btn" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700;" onclick="uiClickSound(); openKeyInfo();">🔑 Key Vault</button>
+                <button class="menu-btn btn-amazon" onclick="uiClickSound(); openAmazon();">🛒 Amazon Deals</button>
+                <button class="menu-btn btn-coffee" onclick="uiClickSound(); openCoffee();">☕ Buy Me a Coffee</button>
+                <button class="menu-btn btn-leave" onclick="uiClickSound(); leaveGame();">❌ Leave Game</button>
             </div>
         </div>
     </div>
 
     <!-- Key Vault -->
     <div id="key-menu" class="modal-overlay hidden">
-        <button class="btn-back" onclick="openMain()">← Go Back</button>
+        <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
             <div class="neon-title" style="color:#ffd700; font-size:22px;">🔑 KEY VAULT</div>
             <p style="font-size:13px; margin:15px 0; color:#ccc;">Golden Keys spawn randomly during gameplay. Collect 10 Keys to unlock the exclusive 🐉 Abyssal Beast Skin!</p>
@@ -178,15 +194,35 @@
         </div>
     </div>
 
+    <!-- Upgrades Shop Menu -->
+    <div id="shop-menu" class="modal-overlay hidden">
+        <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
+        <div class="neon-card">
+            <div class="neon-title" style="color:#ffd700; font-size:20px;">🛒 UPGRADES SHOP</div>
+            <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Spend your Keys 🔑 to buy permanent boosts!</p>
+            <div style="width: 100%;" id="shopItemsContainer"></div>
+        </div>
+    </div>
+
+    <!-- Daily Quests Menu -->
+    <div id="quests-menu" class="modal-overlay hidden">
+        <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
+        <div class="neon-card">
+            <div class="neon-title" style="color:#00ffaa; font-size:20px;">📜 DAILY QUESTS</div>
+            <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Complete challenges to earn bonus keys!</p>
+            <div style="width: 100%;" id="questsContainer"></div>
+        </div>
+    </div>
+
     <!-- Skins Menu -->
     <div id="skins-menu" class="modal-overlay hidden">
-        <button class="btn-back" onclick="openMain()">← Go Back</button>
+        <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
-            <h3 style="font-size: 16px; color:var(--accent-color); margin-bottom:5px;">SKIN PREVIEW</h3>
-            <canvas id="previewCanvas" width="80" height="80"></canvas>
+            <h3 style="font-size: 15px; color:var(--accent-color); margin-bottom:3px;">SKIN PREVIEW</h3>
+            <canvas id="previewCanvas" width="70" height="70"></canvas>
 
             <div class="skins-grid" id="skinsContainer"></div>
-            <button class="menu-btn btn-skins" onclick="unequipSkin()" style="font-size:11px; padding:8px; flex-shrink:0;">Reset Default Skin</button>
+            <button class="menu-btn btn-skins" onclick="uiClickSound(); unequipSkin();" style="font-size:11px; padding:8px; flex-shrink:0;">Reset Default Skin</button>
         </div>
     </div>
 
@@ -208,16 +244,85 @@
         let hearts = 3;
         let gameRunning = false;
 
-        let baseScrollSpeed = 2.45; // Gentle speed start (+12% instead of +30%)
+        let baseScrollSpeed = 2.45; 
         let currentScrollSpeed = 2.45;
 
-        // Audio
+        // Upgrades Inventory / Shop Data
+        let upgrades = {
+            extraLife: { level: 0, max: 1, cost: 5, name: 'Bonus Starting Heart ❤️', desc: 'Start with 4 hearts instead of 3' },
+            shieldBoost: { level: 0, max: 3, cost: 3, name: 'Shield Duration +', desc: '+2s extra shield protection time' },
+            magnet: { level: 0, max: 1, cost: 8, name: 'Key Magnet 🧲', desc: 'Easier attraction radius for collectibles' }
+        };
+
+        // Quests Data
+        let quests = [
+            { id: 'survive1', desc: 'Survive for 2 minutes in a run', target: 120, current: 0, reward: 3, completed: false },
+            { id: 'keys3', desc: 'Collect 3 Keys in total runs', target: 3, current: 0, reward: 4, completed: false },
+            { id: 'score2k', desc: 'Reach 2,000 points in any run', target: 2000, current: 0, reward: 5, completed: false }
+        ];
+
+        // Robust Persistent Audio Engine
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
+        let lobbyMusicInterval = null;
 
-        function playSound(type) {
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // UI Click Sound Effect
+        function uiClickSound() {
+            initAudio();
             try {
-                if (!audioCtx) audioCtx = new AudioCtx();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+                gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now); osc.stop(now + 0.08);
+            } catch(e) {}
+        }
+
+        // Lobby Background Music Banger
+        function startLobbyMusic() {
+            if (lobbyMusicInterval) return;
+            const notes = [220, 246.94, 261.63, 329.63, 392.00, 440];
+            let step = 0;
+            lobbyMusicInterval = setInterval(() => {
+                if (gameRunning) return;
+                initAudio();
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    const now = audioCtx.currentTime;
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(notes[step % notes.length], now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.3);
+                    osc.start(now); osc.stop(now + 0.3);
+                    step++;
+                } catch(e) {}
+            }, 350);
+        }
+
+        function stopLobbyMusic() {
+            if (lobbyMusicInterval) {
+                clearInterval(lobbyMusicInterval);
+                lobbyMusicInterval = null;
+            }
+        }
+
+        // Gameplay Sound Effects (Guaranteed every match)
+        function playSound(type) {
+            initAudio();
+            try {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
@@ -226,7 +331,7 @@
                 if (type === 'score') {
                     osc.frequency.setValueAtTime(587.33, now);
                     osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-                    gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now); osc.stop(now + 0.1);
                 } else if (type === 'key') {
                     osc.frequency.setValueAtTime(523.25, now);
@@ -243,7 +348,7 @@
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(150, now);
                     osc.frequency.linearRampToValueAtTime(40, now + 0.2);
-                    gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    gain.gain.setValueAtTime(0.25, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
                     osc.start(now); osc.stop(now + 0.2);
                 }
             } catch(e) {}
@@ -361,6 +466,8 @@
                 highScore = parsed.highScore || 0;
                 keysCollected = parsed.keys || 0;
                 player.skin = parsed.skin || 'default';
+                if (parsed.upgrades) upgrades = parsed.upgrades;
+                if (parsed.quests) quests = parsed.quests;
                 
                 if (parsed.unlockedSkins) {
                     parsed.unlockedSkins.forEach(id => {
@@ -378,6 +485,7 @@
                 document.getElementById('menuHighScore').textContent = `🏆 High Score: ${highScore}`;
                 updateRankUI();
             }
+            startLobbyMusic();
         }
 
         function saveUserData() {
@@ -387,7 +495,9 @@
                 highScore: highScore,
                 keys: keysCollected,
                 skin: player.skin,
-                unlockedSkins: unlockedList
+                unlockedSkins: unlockedList,
+                upgrades: upgrades,
+                quests: quests
             };
             localStorage.setItem('aetherCore_userState', JSON.stringify(state));
             document.getElementById('menuHighScore').textContent = `🏆 High Score: ${highScore}`;
@@ -404,14 +514,29 @@
                 }
             });
             if (keysCollected >= 10) skins.find(s => s.id === 'beast').unlocked = true;
+
+            // Check Quests progress
+            quests.forEach(q => {
+                if (!q.completed) {
+                    if (q.id === 'survive1' && playTimeSeconds >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'keys3' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'score2k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
+                }
+            });
+
             saveUserData();
         }
 
         function startGame() {
+            stopLobbyMusic();
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('skins-menu').classList.add('hidden');
             document.getElementById('key-menu').classList.add('hidden');
-            hearts = 3; currentRunScore = 0; playTimeSeconds = 0; scoreEl.textContent = '0';
+            document.getElementById('shop-menu').classList.add('hidden');
+            document.getElementById('quests-menu').classList.add('hidden');
+
+            hearts = 3 + (upgrades.extraLife.level > 0 ? 1 : 0);
+            currentRunScore = 0; playTimeSeconds = 0; scoreEl.textContent = '0';
             timerDisplay.textContent = '00:00';
             targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = [];
             player.x = player.targetX = width / 2;
@@ -425,11 +550,17 @@
             saveUserData();
             document.getElementById('skins-menu').classList.add('hidden');
             document.getElementById('key-menu').classList.add('hidden');
+            document.getElementById('shop-menu').classList.add('hidden');
+            document.getElementById('quests-menu').classList.add('hidden');
             document.getElementById('main-menu').classList.remove('hidden');
+            startLobbyMusic();
         }
 
         function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
         function openKeyInfo() { document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; document.getElementById('main-menu').classList.add('hidden'); document.getElementById('key-menu').classList.remove('hidden'); }
+        function openShop() { renderShopList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('shop-menu').classList.remove('hidden'); }
+        function openQuests() { renderQuestsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('quests-menu').classList.remove('hidden'); }
+
         function openAmazon() {
             skins.find(s => s.id === 'amazon').unlocked = true;
             saveUserData();
@@ -463,6 +594,43 @@
             }
         }
 
+        // Shop & Quests UI Renderers
+        function renderShopList() {
+            const container = document.getElementById('shopItemsContainer');
+            container.innerHTML = '';
+            Object.keys(upgrades).forEach(key => {
+                const upg = upgrades[key];
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `<div><strong>${upg.name}</strong><br><span style="font-size:9px; color:#aaa;">${upg.desc} (Lvl ${upg.level}/${upg.max})</span></div>` +
+                                `<button class="icon-btn" style="color:#ffd700; border-color:#ffd700;" onclick="uiClickSound(); buyUpgrade('${key}')">${upg.level >= upg.max ? 'MAX' : upg.cost + ' 🔑'}</button>`;
+                container.appendChild(div);
+            });
+        }
+
+        function buyUpgrade(key) {
+            const upg = upgrades[key];
+            if (upg.level < upg.max && keysCollected >= upg.cost) {
+                keysCollected -= upg.cost;
+                upg.level++;
+                keyCountEl.textContent = keysCollected;
+                saveUserData();
+                renderShopList();
+            }
+        }
+
+        function renderQuestsList() {
+            const container = document.getElementById('questsContainer');
+            container.innerHTML = '';
+            quests.forEach(q => {
+                const div = document.createElement('div');
+                div.className = 'quest-item';
+                div.innerHTML = `<div><strong>${q.desc}</strong><br><span style="font-size:9px; color:#00ffaa;">Reward: +${q.reward} 🔑</span></div>` +
+                                `<div style="font-weight:bold; color:${q.completed ? '#00ffaa' : '#ff9900'};">${q.completed ? 'COMPLETED ✅' : 'IN PROGRESS'}</div>`;
+                container.appendChild(div);
+            });
+        }
+
         // Skins Render
         let previewAnimId, previewAngle = 0;
         function animatePreview(skinObj) {
@@ -471,17 +639,17 @@
             cancelAnimationFrame(previewAnimId);
 
             function pLoop() {
-                pCtx.clearRect(0, 0, 80, 80);
+                pCtx.clearRect(0, 0, 70, 70);
                 previewAngle += 0.08;
-                const r = 16 + Math.sin(previewAngle) * 2;
+                const r = 14 + Math.sin(previewAngle) * 2;
 
-                pCtx.shadowBlur = 15; pCtx.shadowColor = skinObj.color;
+                pCtx.shadowBlur = 12; pCtx.shadowColor = skinObj.color;
                 pCtx.fillStyle = '#ffffff';
-                pCtx.beginPath(); pCtx.arc(40, 40, r, 0, Math.PI * 2); pCtx.fill();
+                pCtx.beginPath(); pCtx.arc(35, 35, r, 0, Math.PI * 2); pCtx.fill();
 
                 pCtx.shadowBlur = 0;
-                pCtx.font = '16px serif'; pCtx.textAlign = 'center'; pCtx.textBaseline = 'middle';
-                pCtx.fillText(skinObj.emoji, 40, 40);
+                pCtx.font = '14px serif'; pCtx.textAlign = 'center'; pCtx.textBaseline = 'middle';
+                pCtx.fillText(skinObj.emoji, 35, 35);
 
                 previewAnimId = requestAnimationFrame(pLoop);
             }
@@ -494,7 +662,7 @@
             skins.forEach(s => {
                 const card = document.createElement('div');
                 card.className = `skin-card ${player.skin === s.id ? 'active' : ''} ${!s.unlocked ? 'locked' : ''}`;
-                card.innerHTML = `<div style="font-size:13px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:10px; color:#8899a6; margin-top:2px;">${s.unlocked ? 'Unlocked' : s.req}</div>`;
+                card.innerHTML = `<div style="font-size:12px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:9px; color:#8899a6; margin-top:2px;">${s.unlocked ? 'Unlocked' : s.req}</div>`;
                 card.onclick = () => {
                     animatePreview(s);
                     if (s.unlocked) {
@@ -517,10 +685,10 @@
         function spawnObstacle() {
             const type = Math.random() > 0.5 ? 'bar' : 'bomb';
             if (type === 'bar') {
-                const obsW = Math.random() * 60 + 50;
-                obstacles.push({ type: 'bar', x: Math.random() * (width - obsW - 40) + 20, y: -30, w: obsW, h: 12 });
+                const obsW = Math.random() * 50 + 40;
+                obstacles.push({ type: 'bar', x: Math.random() * (width - obsW - 40) + 20, y: -30, w: obsW, h: 10 });
             } else {
-                obstacles.push({ type: 'bomb', x: Math.random() * (width - 60) + 30, y: -30, radius: 14 });
+                obstacles.push({ type: 'bomb', x: Math.random() * (width - 60) + 30, y: -30, radius: 12 });
             }
         }
         function spawnShieldItem() { shields.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
@@ -528,7 +696,7 @@
         function spawnKeyItem() { keyDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 12 }); }
 
         setInterval(() => { if (gameRunning) spawnShieldItem(); }, 25000);
-        setInterval(() => { if (gameRunning) spawnHeartItem(); }, 90000); // Buff heart drops every 90 seconds (1.5 mins)
+        setInterval(() => { if (gameRunning) spawnHeartItem(); }, 90000); 
         setInterval(() => { if (gameRunning) spawnKeyItem(); }, 40000);
         setInterval(() => { 
             if (gameRunning) { 
@@ -549,8 +717,7 @@
             const now = Date.now();
 
             if (gameRunning) {
-                // Slower progressive speed scaling
-                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 4000, 2.5);
+                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 5000, 2.0);
 
                 player.x += (player.targetX - player.x) * 0.25;
                 player.y += (player.targetY - player.y) * 0.25;
@@ -562,21 +729,20 @@
                 player.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
                 ctx.strokeStyle = player.color; ctx.lineWidth = player.radius * 0.5; ctx.stroke();
 
-                // Player White Circle
                 ctx.shadowBlur = 15; ctx.shadowColor = player.color; ctx.fillStyle = '#ffffff';
                 ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
 
-                // Emoji Centered on Player Circle
                 ctx.shadowBlur = 0;
                 ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(player.emoji, player.x, player.y);
 
                 if (player.shieldActive) {
+                    const duration = 5000 + (upgrades.shieldBoost.level * 2000);
                     const remainingTime = Math.max(0, player.shieldEndTime - now);
                     if (remainingTime <= 0) {
                         player.shieldActive = false;
                     } else {
-                        const progress = remainingTime / player.shieldDuration;
+                        const progress = remainingTime / duration;
                         ctx.beginPath();
                         ctx.arc(player.x, player.y, player.radius + 8, -Math.PI/2, (-Math.PI/2) + (Math.PI * 2 * progress));
                         ctx.strokeStyle = '#00f2fe'; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = '#00f2fe';
@@ -584,19 +750,21 @@
                     }
                 }
 
-                if (Math.random() < 0.02) spawnTarget();
+                // Slightly increased score neon balls (targets) ratio
+                if (Math.random() < 0.035) spawnTarget();
                 
-                // Reduced obstacle spawn density from start (~60% of original rate)
-                const obstacleSpawnChance = 0.007 + Math.min(currentRunScore / 15000, 0.020);
+                // Slightly decreased obstacle ratio
+                const obstacleSpawnChance = 0.005 + Math.min(currentRunScore / 20000, 0.015);
                 if (Math.random() < obstacleSpawnChance) spawnObstacle();
 
-                // Targets
+                // Targets (Score Neon Balls)
                 targets.forEach((t, i) => {
                     t.y += currentScrollSpeed;
                     ctx.fillStyle = t.color; ctx.shadowBlur = 10; ctx.shadowColor = t.color;
                     ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
 
-                    if (Math.hypot(player.x - t.x, player.y - t.y) < player.radius + t.radius) {
+                    let collectDist = player.radius + t.radius + (upgrades.magnet.level > 0 ? 25 : 0);
+                    if (Math.hypot(player.x - t.x, player.y - t.y) < collectDist) {
                         currentRunScore += 100; scoreEl.textContent = currentRunScore; playSound('score'); checkUnlocks();
                         targets.splice(i, 1);
                     } else if (t.y > height + 50) targets.splice(i, 1);
@@ -631,7 +799,8 @@
                     ctx.fillText('🛡️', sh.x, sh.y);
 
                     if (Math.hypot(player.x - sh.x, player.y - sh.y) < player.radius + sh.radius) {
-                        player.shieldActive = true; player.shieldEndTime = Date.now() + player.shieldDuration;
+                        player.shieldActive = true; 
+                        player.shieldEndTime = Date.now() + (5000 + (upgrades.shieldBoost.level * 2000));
                         playSound('shield'); shields.splice(i, 1);
                     } else if (sh.y > height + 50) shields.splice(i, 1);
                 });
