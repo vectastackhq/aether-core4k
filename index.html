@@ -78,7 +78,7 @@
             color: var(--accent-color);
         }
 
-        /* Skins Grid Container with Fixed Scroll */
+        /* Skins Grid Container with Fixed Scroll and Scroll from here title */
         .skins-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
             margin: 10px 0; max-height: 200px; overflow-y: auto; overflow-x: hidden;
@@ -148,6 +148,10 @@
                 <div id="keyCount" class="stat-val" style="color:#ffd700;">0</div>
             </div>
             <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
+                <div class="stat-label">🔥 Combo</div>
+                <div id="comboDisplay" class="stat-val" style="font-size:14px; color:#ff9900;">1.0x</div>
+            </div>
+            <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
                 <div class="stat-label">⏱️ Time</div>
                 <div id="timerDisplay" class="stat-val" style="font-size:14px; color:#ff007f;">00:00</div>
             </div>
@@ -200,7 +204,7 @@
         </div>
     </div>
 
-    <!-- Upgrades Shop Menu (Key Magnet removed permanently, buffer only) -->
+    <!-- Upgrades Shop Menu -->
     <div id="shop-menu" class="modal-overlay hidden">
         <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
@@ -216,19 +220,23 @@
         <div class="neon-card">
             <div class="neon-title" style="color:#00ffaa; font-size:20px;">📜 DAILY QUESTS</div>
             <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Complete challenges to earn bonus keys (1 to 5 Keys)!</p>
-            <div style="width: 100%;" id="questsContainer"></div>
+            <div style="width: 100%; max-height: 280px; overflow-y: auto; padding-right: 4px;" id="questsContainer"></div>
         </div>
     </div>
 
-    <!-- Skins Menu -->
+    <!-- Skins Menu with Scroll from here title at normal size and Separate Dedicated Scroller Section -->
     <div id="skins-menu" class="modal-overlay hidden">
         <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
             <h3 style="font-size: 14px; color:var(--accent-color); margin-bottom:2px;">SKIN PREVIEW</h3>
-            <p style="font-size:10px; color:#8899a6; margin-bottom:4px;">Scroll from here</p>
+            <p style="font-size:14px; color:#ffffff; font-weight:bold; margin-bottom:6px;">scroll from here</p>
             <canvas id="previewCanvas" width="60" height="60"></canvas>
 
-            <div class="skins-grid" id="skinsContainer"></div>
+            <!-- Separate scroller wrapper for skin listing -->
+            <div style="width: 100%; max-height: 210px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 12px; padding: 6px; background: rgba(0,0,0,0.3); margin: 6px 0;">
+                <div class="skins-grid" id="skinsContainer" style="max-height: none; margin: 0;"></div>
+            </div>
+
             <button class="menu-btn btn-skins" onclick="uiClickSound(); unequipSkin();" style="font-size:11px; padding:8px; flex-shrink:0;">Reset Default Skin</button>
         </div>
     </div>
@@ -240,6 +248,7 @@
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score');
         const keyCountEl = document.getElementById('keyCount');
+        const comboDisplay = document.getElementById('comboDisplay');
         const timerDisplay = document.getElementById('timerDisplay');
         const heartsContainer = document.getElementById('heartsContainer');
 
@@ -250,25 +259,29 @@
         let playTimeSeconds = 0;
         let hearts = 3;
         let gameRunning = false;
-        let comboMultiplier = 1;
+        let comboMultiplier = 1.0;
+        let comboTimer = 0;
         let selectedGameMode = 'standard'; // 'standard' or 'timeline'
 
         let baseScrollSpeed = 2.45; 
         let currentScrollSpeed = 2.45;
 
-        // Upgrades Inventory / Shop Data (Key Magnet fully removed from shop)
+        // Upgrades Inventory / Shop Data
         let upgrades = {
             extraLife: { level: 0, max: 5, cost: 5, name: 'Bonus Starting Hearts ❤️', desc: 'Increase starting hearts (+1 per level)' },
             shieldBoost: { level: 0, max: 5, cost: 3, name: 'Shield Duration +', desc: '+2s extra shield protection time per level' }
         };
 
-        // Quests Data (Rewards scaled between 1 and 5 keys)
+        // Expanded Quests Data with more tasks to do
         let quests = [
             { id: 'survive1', desc: 'Survive for 1 minute in a run', target: 60, current: 0, reward: 2, completed: false },
+            { id: 'survive2', desc: 'Survive for 2 minutes in a run', target: 120, current: 0, reward: 4, completed: false },
             { id: 'keys1', desc: 'Collect 1 Key in total runs', target: 1, current: 0, reward: 1, completed: false },
             { id: 'keys5', desc: 'Collect 5 Keys in total runs', target: 5, current: 0, reward: 5, completed: false },
+            { id: 'keys10', desc: 'Collect 10 Keys in total runs', target: 10, current: 0, reward: 5, completed: false },
             { id: 'score1k', desc: 'Reach 1,000 points in any run', target: 1000, current: 0, reward: 3, completed: false },
-            { id: 'score3k', desc: 'Reach 3,000 points in any run', target: 3000, current: 0, reward: 4, completed: false }
+            { id: 'score3k', desc: 'Reach 3,000 points in any run', target: 3000, current: 0, reward: 4, completed: false },
+            { id: 'score5k', desc: 'Reach 5,000 points in any run', target: 5000, current: 0, reward: 5, completed: false }
         ];
 
         // Robust Persistent Audio Engine
@@ -372,12 +385,12 @@
         const emojisList = ['💎','🐉','🕷️','🪵','⭐','🦈','🗿','🛒','🐆','⚡','🔥','❄️','🌌','☀️','👻','🤖','🪐','⚡','☣️','👑','☄️','🌀','🦹','💀','🦅','🥷','🐲','🐺','🐅','🐍','💎','👹','👼','☢️','✨','🦠','💻','🕳️','🗡️','⏳','🚀','👽','🦾','💣','🌊','🌋','⚡','🧊','🌠','♾️','🔮','🛡️','🗡️','👑','🔥','⚡','💎','🌟','💫','☄️','💥','🌀','🔮','🧿','🔭','🛰️','🛸','🚀','🪐','🌙','⭐','☀️','⚡','🔥','💧','🌊','❄️','⚡','🌪️','🌋','🧨','💣','🗡️','⚔️','🛡️','🏹','🔧','⚙️','🔩','🧱','🔮','💎','👑','🏆','🥇','🎖️','🏅','💯','🔥','⚡','💀','👻'];
         const colorsList = ['#00f2fe','#ff0055','#ff0033','#ffaa00','#0055ff','#00ffaa','#aa00ff','#ff9900','#ff3300','#ffff00','#ff4500','#00ffff','#8a2be2','#ffa500','#7fffd4','#708090','#da70d6','#adff2f','#32cd32','#ffd700','#ff6347','#00fa9a','#4b0082','#ff1493','#1e90ff','#2f4f4f','#ff8c00','#d3d3d3','#ff4500','#228b22','#00ced1','#dc143c','#fffacd','#00ff7f','#ffb6c1','#adff2f','#00ff00','#483d8b','#ff0000','#deb887','#4682b4','#39ff14','#778899','#ff4500','#1e90ff','#ff6347','#ffff33','#e0ffff','#9932cc','#ff1493'];
 
-        // Skins with custom pricing spread across 10, 20, 25, 30 keys, milestones, missions, and rank
+        // Skins with updated names to Neon Vanguard style variants
         const skins = [];
         const pricePool = [10, 20, 25, 30];
         for (let i = 1; i <= 110; i++) {
             let id = i === 1 ? 'default' : `skin_${i}`;
-            let name = i === 1 ? 'Aether Core' : `Neon Vanguard #${i}`;
+            let name = i === 1 ? 'Neon Vanguard #1' : `Neon Vanguard #${i}`;
             let emoji = emojisList[(i - 1) % emojisList.length];
             let color = colorsList[(i - 1) % colorsList.length];
             
@@ -392,10 +405,10 @@
             }
             skins.push({ id, name, emoji, color, req, price, unlocked: i === 1 });
         }
-        skins.find(s => s.id === 'skin_2').name = 'Abyssal Beast';
+        skins.find(s => s.id === 'skin_2').name = 'Neon Vanguard #2';
         skins.find(s => s.id === 'skin_2').req = '10 Keys 🔑';
         skins.find(s => s.id === 'skin_2').price = 10;
-        skins.find(s => s.id === 'skin_8').name = 'Amazon Sovereign';
+        skins.find(s => s.id === 'skin_8').name = 'Neon Vanguard #8';
         skins.find(s => s.id === 'skin_8').req = 'Tap Amazon';
         skins.find(s => s.id === 'skin_8').price = 0;
 
@@ -520,10 +533,13 @@
             quests.forEach(q => {
                 if (!q.completed) {
                     if (q.id === 'survive1' && playTimeSeconds >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'survive2' && playTimeSeconds >= q.target) { q.completed = true; keysCollected += q.reward; }
                     if (q.id === 'keys1' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
                     if (q.id === 'keys5' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'keys10' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
                     if (q.id === 'score1k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
                     if (q.id === 'score3k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'score5k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
                 }
             });
 
@@ -539,7 +555,8 @@
             document.getElementById('quests-menu').classList.add('hidden');
 
             hearts = 3 + upgrades.extraLife.level;
-            currentRunScore = 0; playTimeSeconds = 0; comboMultiplier = 1; scoreEl.textContent = '0';
+            currentRunScore = 0; playTimeSeconds = 0; comboMultiplier = 1.0; comboTimer = 0; scoreEl.textContent = '0';
+            comboDisplay.textContent = '1.0x';
             timerDisplay.textContent = '00:00';
             targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = []; magnetDrops = []; laserBeams = [];
             player.x = player.targetX = width / 2;
@@ -589,7 +606,7 @@
         function triggerDamage() {
             if (player.shieldActive) return;
             playSound('hit');
-            hearts--; comboMultiplier = 1; updateHeartsUI();
+            hearts--; comboMultiplier = 1.0; comboTimer = 0; comboDisplay.textContent = '1.0x'; updateHeartsUI();
             if (hearts <= 0) {
                 gameRunning = false;
                 const survivalTimeStr = formatTime(playTimeSeconds);
@@ -701,18 +718,17 @@
                 tx = -30;
             }
             
-            // Randomized point values & colors: Green (50), Blue (70), Neon random max (100)
             let randType = Math.random();
             let pVal = 50;
-            let pColor = '#00ff7f'; // green
+            let pColor = '#00ff7f';
             let pRadius = 8;
             if (randType > 0.66) {
                 pVal = 100;
-                pColor = '#00ffff'; // neon cyan / bright accent
+                pColor = '#00ffff';
                 pRadius = 12;
             } else if (randType > 0.33) {
                 pVal = 70;
-                pColor = '#0055ff'; // blue
+                pColor = '#0055ff';
                 pRadius = 10;
             }
 
@@ -745,6 +761,16 @@
             if (gameRunning) { 
                 playTimeSeconds++; 
                 timerDisplay.textContent = formatTime(playTimeSeconds);
+                
+                // Combo decay check over time
+                if (comboTimer > 0) {
+                    comboTimer--;
+                    if (comboTimer === 0 && comboMultiplier > 1.0) {
+                        comboMultiplier = Math.max(1.0, +(comboMultiplier - 0.2).toFixed(1));
+                        comboDisplay.textContent = comboMultiplier.toFixed(1) + 'x';
+                    }
+                }
+
                 checkUnlocks(); 
             } 
         }, 1000);
@@ -825,7 +851,10 @@
 
                     let collectDist = player.radius + t.radius + (player.magnetActive ? 25 : 0);
                     if (Math.hypot(player.x - t.x, player.y - t.y) < collectDist) {
-                        comboMultiplier += 0.2; 
+                        comboMultiplier = +(comboMultiplier + 0.2).toFixed(1);
+                        comboTimer = 5; // Reset combo decay window timer to 5 seconds
+                        comboDisplay.textContent = comboMultiplier.toFixed(1) + 'x';
+                        
                         currentRunScore += Math.floor(t.value * comboMultiplier); 
                         scoreEl.textContent = currentRunScore; 
                         playSound('score'); checkUnlocks();
