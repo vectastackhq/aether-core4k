@@ -68,6 +68,14 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
+        /* Rank Badge */
+        .rank-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: bold; text-transform: uppercase;
+            margin-top: 4px; background: rgba(0, 242, 254, 0.15); border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
         /* Skins Grid */
         .skins-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -94,12 +102,13 @@
         }
         .btn-enter { background: linear-gradient(45deg, #00f2fe, #4facfe); color: #000; }
         .btn-skins { background: transparent; border: 2px solid #ff007f; color: #ff007f; }
+        .btn-amazon { background: rgba(255, 153, 0, 0.15); border: 2px solid #ff9900; color: #ff9900; }
         .btn-leave { background: rgba(255, 42, 109, 0.15); border: 1px solid #ff2a6d; color: #ff2a6d; }
         .btn-back { position: absolute; top: 15px; left: 15px; background: transparent; border: 1px solid #8899a6; color: #8899a6; padding: 6px 12px; border-radius: 6px; }
 
         .high-score-banner {
             background: rgba(0, 242, 254, 0.1); border: 1px solid var(--accent-color);
-            border-radius: 10px; padding: 8px; margin: 10px 0; font-size: 13px; font-weight: bold;
+            border-radius: 10px; padding: 8px; margin: 10px 0 5px; font-size: 13px; font-weight: bold;
             color: var(--accent-color);
         }
     </style>
@@ -135,11 +144,15 @@
             <p style="font-size:12px; color:#8899a6; margin-bottom:5px;">Vertical Neon Ascent</p>
 
             <div class="high-score-banner" id="menuHighScore">🏆 High Score: 0</div>
+            <div class="rank-badge" id="playerRankBadge">Rank: Novice 🥉</div>
 
-            <button class="menu-btn btn-enter" onclick="startGame()">⚡ Enter Game</button>
-            <button class="menu-btn btn-skins" onclick="openSkins()">✨ Skins & Powers</button>
-            <button class="menu-btn" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700;" onclick="openKeyInfo()">🔑 Key Vault</button>
-            <button class="menu-btn btn-leave" onclick="leaveGame()">❌ Leave Game</button>
+            <div style="margin-top: 15px;">
+                <button class="menu-btn btn-enter" onclick="startGame()">⚡ Enter Game</button>
+                <button class="menu-btn btn-skins" onclick="openSkins()">✨ Skins & Powers</button>
+                <button class="menu-btn" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700;" onclick="openKeyInfo()">🔑 Key Vault</button>
+                <button class="menu-btn btn-amazon" onclick="openAmazon()">🛒 Amazon Deals</button>
+                <button class="menu-btn btn-leave" onclick="leaveGame()">❌ Leave Game</button>
+            </div>
         </div>
     </div>
 
@@ -182,8 +195,9 @@
         let hearts = 3;
         let gameRunning = false;
 
-        let baseScrollSpeed = 2.2;
-        let currentScrollSpeed = 2.2;
+        // SPEED INCREASED BY 30%
+        let baseScrollSpeed = 2.86; 
+        let currentScrollSpeed = 2.86;
 
         // Audio
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -223,20 +237,23 @@
             } catch(e) {}
         }
 
-        // Player
+        // Player & Skins
         const player = {
-            x: 0, y: 0, targetX: 0, targetY: 0, radius: 15,
-            skin: 'default', color: '#00f2fe', trail: [],
+            x: 0, y: 0, targetX: 0, targetY: 0, radius: 16,
+            skin: 'default', color: '#00f2fe', emoji: '💎', trail: [],
             shieldActive: false, shieldEndTime: 0, shieldDuration: 5000
         };
 
+        // ONLY 1 DEFAULT UNLOCKED SKIN
         const skins = [
-            { id: 'default', name: '💎 Aether Core', color: '#00f2fe', unlocked: true },
-            { id: 'beast', name: '🐉 Abyssal Beast', color: '#ff0055', req: '10 Keys 🔑', unlocked: false },
-            { id: 'spidey', name: '🕷️ Spider-Glow', color: '#ff0033', req: 'Reach 500 pts', unlocked: false },
-            { id: 'cap', name: '🛡️ Captain Shield', color: '#0055ff', req: 'Reach 1,500 pts', unlocked: false },
-            { id: 'tung', name: '🪵 Tung Sahur', color: '#ffaa00', req: 'Reach 1,000 pts', unlocked: false },
-            { id: 'shark', name: '🦈 Tralalero Shark', color: '#00ffaa', req: 'Reach 3,500 pts', unlocked: false }
+            { id: 'default', name: 'Aether Core', emoji: '💎', color: '#00f2fe', req: 'Free Default', unlocked: true },
+            { id: 'beast', name: 'Abyssal Beast', emoji: '🐉', color: '#ff0055', req: '10 Keys 🔑', unlocked: false },
+            { id: 'spidey', name: 'Spider-Glow', emoji: '🕷️', color: '#ff0033', req: 'Bronze Rank (500 pts)', unlocked: false },
+            { id: 'tung', name: 'Tung Sahur', emoji: '🪵', color: '#ffaa00', req: 'Silver Rank (1,000 pts)', unlocked: false },
+            { id: 'cap', name: 'Captain Shield', emoji: '🛡️', color: '#0055ff', req: 'Gold Rank (1,500 pts)', unlocked: false },
+            { id: 'shark', name: 'Tralalero Shark', emoji: '🦈', color: '#00ffaa', req: 'Diamond Rank (3,500 pts)', unlocked: false },
+            { id: 'sigmatron', name: 'Sigmatron 9000', emoji: '🗿', color: '#aa00ff', req: 'Play 120s', unlocked: false },
+            { id: 'amazon', name: 'Amazon Sovereign', emoji: '🛒', color: '#ff9900', req: 'Tap Amazon Deals', unlocked: false }
         ];
 
         let targets = [], obstacles = [], shields = [], keyDrops = [];
@@ -266,6 +283,23 @@
             }
         }, { passive: true });
 
+        // Rank System
+        function getRank(score) {
+            if (score >= 3500) return { title: 'Diamond Tier 💎', color: '#00ffaa' };
+            if (score >= 1500) return { title: 'Gold Tier 🥇', color: '#ffd700' };
+            if (score >= 1000) return { title: 'Silver Tier 🥈', color: '#c0c0c0' };
+            if (score >= 500) return { title: 'Bronze Tier 🥉', color: '#cd7f32' };
+            return { title: 'Novice Tier 🥉', color: '#00f2fe' };
+        }
+
+        function updateRankUI() {
+            const rank = getRank(highScore);
+            const badge = document.getElementById('playerRankBadge');
+            badge.textContent = `Rank: ${rank.title}`;
+            badge.style.color = rank.color;
+            badge.style.borderColor = rank.color;
+        }
+
         // Save/Load
         function loadUserData() {
             const data = localStorage.getItem('aetherCore_userState');
@@ -275,17 +309,22 @@
                 keysCollected = parsed.keys || 0;
                 playTimeSeconds = parsed.playTime || 0;
                 player.skin = parsed.skin || 'default';
-                const currentSkin = skins.find(s => s.id === player.skin);
-                if (currentSkin) player.color = currentSkin.color;
-
+                
                 if (parsed.unlockedSkins) {
                     parsed.unlockedSkins.forEach(id => {
                         const s = skins.find(k => k.id === id);
                         if(s) s.unlocked = true;
                     });
                 }
+
+                const currentSkin = skins.find(s => s.id === player.skin && s.unlocked) || skins[0];
+                player.skin = currentSkin.id;
+                player.color = currentSkin.color;
+                player.emoji = currentSkin.emoji;
+
                 keyCountEl.textContent = keysCollected;
                 document.getElementById('menuHighScore').textContent = `🏆 High Score: ${highScore}`;
+                updateRankUI();
             }
         }
 
@@ -301,6 +340,7 @@
             };
             localStorage.setItem('aetherCore_userState', JSON.stringify(state));
             document.getElementById('menuHighScore').textContent = `🏆 High Score: ${highScore}`;
+            updateRankUI();
         }
 
         function checkUnlocks() {
@@ -308,6 +348,7 @@
             if (currentRunScore >= 1000 || highScore >= 1000) skins.find(s => s.id === 'tung').unlocked = true;
             if (currentRunScore >= 1500 || highScore >= 1500) skins.find(s => s.id === 'cap').unlocked = true;
             if (currentRunScore >= 3500 || highScore >= 3500) skins.find(s => s.id === 'shark').unlocked = true;
+            if (playTimeSeconds >= 120) skins.find(s => s.id === 'sigmatron').unlocked = true;
             if (keysCollected >= 10) skins.find(s => s.id === 'beast').unlocked = true;
             saveUserData();
         }
@@ -334,6 +375,11 @@
 
         function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
         function openKeyInfo() { document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; document.getElementById('main-menu').classList.add('hidden'); document.getElementById('key-menu').classList.remove('hidden'); }
+        function openAmazon() {
+            skins.find(s => s.id === 'amazon').unlocked = true;
+            saveUserData();
+            window.open('https://www.amazon.com', '_blank');
+        }
         function leaveGame() { window.location.href = "https://www.google.com"; }
 
         function updateHeartsUI() {
@@ -353,7 +399,7 @@
 
         // Skins Render
         let previewAnimId, previewAngle = 0;
-        function animatePreview(skinColor) {
+        function animatePreview(skinObj) {
             const pCanvas = document.getElementById('previewCanvas');
             const pCtx = pCanvas.getContext('2d');
             cancelAnimationFrame(previewAnimId);
@@ -361,11 +407,16 @@
             function pLoop() {
                 pCtx.clearRect(0, 0, 80, 80);
                 previewAngle += 0.08;
-                const r = 14 + Math.sin(previewAngle) * 2;
+                const r = 16 + Math.sin(previewAngle) * 2;
 
-                pCtx.shadowBlur = 15; pCtx.shadowColor = skinColor;
-                pCtx.fillStyle = skinColor;
+                pCtx.shadowBlur = 15; pCtx.shadowColor = skinObj.color;
+                pCtx.fillStyle = '#ffffff';
                 pCtx.beginPath(); pCtx.arc(40, 40, r, 0, Math.PI * 2); pCtx.fill();
+
+                pCtx.shadowBlur = 0;
+                pCtx.font = '16px serif'; pCtx.textAlign = 'center'; pCtx.textBaseline = 'middle';
+                pCtx.fillText(skinObj.emoji, 40, 40);
+
                 previewAnimId = requestAnimationFrame(pLoop);
             }
             pLoop();
@@ -377,20 +428,23 @@
             skins.forEach(s => {
                 const card = document.createElement('div');
                 card.className = `skin-card ${player.skin === s.id ? 'active' : ''} ${!s.unlocked ? 'locked' : ''}`;
-                card.innerHTML = `<div style="font-size:12px; font-weight:bold;">${s.name}</div><div style="font-size:10px; color:#8899a6; margin-top:2px;">${s.unlocked ? 'Unlocked' : s.req}</div>`;
+                card.innerHTML = `<div style="font-size:13px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:10px; color:#8899a6; margin-top:2px;">${s.unlocked ? 'Unlocked' : s.req}</div>`;
                 card.onclick = () => {
-                    animatePreview(s.color);
+                    animatePreview(s);
                     if (s.unlocked) {
-                        player.skin = s.id; player.color = s.color;
+                        player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
                         saveUserData(); renderSkinsList();
                     }
                 };
                 container.appendChild(card);
             });
-            const activeSkinObj = skins.find(k => k.id === player.skin);
-            animatePreview(activeSkinObj ? activeSkinObj.color : '#00f2fe');
+            const activeSkinObj = skins.find(k => k.id === player.skin) || skins[0];
+            animatePreview(activeSkinObj);
         }
-        function unequipSkin() { player.skin = 'default'; player.color = '#00f2fe'; saveUserData(); animatePreview(player.color); renderSkinsList(); }
+        function unequipSkin() { 
+            player.skin = 'default'; player.color = '#00f2fe'; player.emoji = '💎'; 
+            saveUserData(); animatePreview(skins[0]); renderSkinsList(); 
+        }
 
         // Spawners
         function spawnTarget() { targets.push({ x: Math.random()*(width-60)+30, y: -30, radius: 10, color: '#00f2fe' }); }
@@ -421,7 +475,8 @@
             const now = Date.now();
 
             if (gameRunning) {
-                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 10000, 2.0);
+                // 30% FASTER SPEED SCALING BASED ON SCORE
+                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 2500, 3.5);
 
                 player.x += (player.targetX - player.x) * 0.25;
                 player.y += (player.targetY - player.y) * 0.25;
@@ -433,8 +488,14 @@
                 player.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
                 ctx.strokeStyle = player.color; ctx.lineWidth = player.radius * 0.5; ctx.stroke();
 
-                ctx.shadowBlur = 15; ctx.shadowColor = player.color; ctx.fillStyle = '#fff';
+                // Player White Circle
+                ctx.shadowBlur = 15; ctx.shadowColor = player.color; ctx.fillStyle = '#ffffff';
                 ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
+
+                // EMOJI CENTERED DIRECTLY ON TOP OF WHITE CIRCLE
+                ctx.shadowBlur = 0;
+                ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(player.emoji, player.x, player.y);
 
                 if (player.shieldActive) {
                     const remainingTime = Math.max(0, player.shieldEndTime - now);
@@ -449,8 +510,11 @@
                     }
                 }
 
+                // SPAWN RATES (OBSTACLES NOW INCREASE WITH SCORE INSTEAD OF DECREASING)
                 if (Math.random() < 0.02) spawnTarget();
-                if (Math.random() < 0.008) spawnObstacle();
+                
+                const obstacleSpawnChance = 0.012 + Math.min(currentRunScore / 10000, 0.025);
+                if (Math.random() < obstacleSpawnChance) spawnObstacle();
 
                 // Targets
                 targets.forEach((t, i) => {
