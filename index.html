@@ -77,11 +77,12 @@
             color: var(--accent-color);
         }
 
-        /* Skins Grid Container with Perfect Scrolling */
+        /* Skins Grid Container with Fixed Scroll */
         .skins-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
             margin: 15px 0; max-height: 250px; overflow-y: auto; overflow-x: hidden;
-            width: 100%; padding: 4px; touch-action: pan-y;
+            width: 100%; padding: 4px; pointer-events: auto; touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
         }
         .skins-grid::-webkit-scrollbar { width: 6px; }
         .skins-grid::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
@@ -89,7 +90,7 @@
         .skin-card {
             background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px; padding: 10px 8px; text-align: center; cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s; pointer-events: auto;
         }
         .skin-card.active { border-color: var(--accent-color); background: rgba(0, 242, 254, 0.15); box-shadow: 0 0 10px var(--border-color); }
         .skin-card.locked { opacity: 0.55; }
@@ -131,6 +132,10 @@
             <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
                 <div class="stat-label">🔑 Keys</div>
                 <div id="keyCount" class="stat-val" style="color:#ffd700;">0</div>
+            </div>
+            <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
+                <div class="stat-label">⏱️ Time</div>
+                <div id="timerDisplay" class="stat-val" style="font-size:14px; color:#ff007f;">00:00</div>
             </div>
             <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
                 <div class="stat-label">Lives</div>
@@ -192,6 +197,7 @@
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score');
         const keyCountEl = document.getElementById('keyCount');
+        const timerDisplay = document.getElementById('timerDisplay');
         const heartsContainer = document.getElementById('heartsContainer');
 
         let width, height, dpr;
@@ -202,8 +208,8 @@
         let hearts = 3;
         let gameRunning = false;
 
-        let baseScrollSpeed = 2.86; 
-        let currentScrollSpeed = 2.86;
+        let baseScrollSpeed = 2.45; // Gentle speed start (+12% instead of +30%)
+        let currentScrollSpeed = 2.45;
 
         // Audio
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -227,10 +233,10 @@
                     osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.2);
                     gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
                     osc.start(now); osc.stop(now + 0.2);
-                } else if (type === 'shield') {
+                } else if (type === 'shield' || type === 'heart') {
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.25);
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.25);
                     gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
                     osc.start(now); osc.stop(now + 0.25);
                 } else if (type === 'hit') {
@@ -243,7 +249,7 @@
             } catch(e) {}
         }
 
-        // Player & Skins (50+ Skins with progressive milestones)
+        // Player & Skins (50+ Skins)
         const player = {
             x: 0, y: 0, targetX: 0, targetY: 0, radius: 16,
             skin: 'default', color: '#00f2fe', emoji: '💎', trail: [],
@@ -259,7 +265,6 @@
             { id: 'shark', name: 'Tralalero Shark', emoji: '🦈', color: '#00ffaa', req: '2,200 pts', unlocked: false },
             { id: 'sigmatron', name: 'Sigmatron 9000', emoji: '🗿', color: '#aa00ff', req: '3,000 pts', unlocked: false },
             { id: 'amazon', name: 'Amazon Sovereign', emoji: '🛒', color: '#ff9900', req: 'Tap Amazon', unlocked: false },
-            // 42 Additional Skins making 50+ total with tougher milestones
             { id: 'skin9', name: 'Neon Panther', emoji: '🐆', color: '#ff3300', req: '4,000 pts', unlocked: false },
             { id: 'skin10', name: 'Cyber Samurai', emoji: '⚡', color: '#ffff00', req: '5,000 pts', unlocked: false },
             { id: 'skin11', name: 'Phoenix Fire', emoji: '🔥', color: '#ff4500', req: '6,200 pts', unlocked: false },
@@ -304,7 +309,7 @@
             { id: 'skin50', name: 'Infinity Master', emoji: '♾️', color: '#ff1493', req: '150,000 pts', unlocked: false }
         ];
 
-        let targets = [], obstacles = [], shields = [], keyDrops = [];
+        let targets = [], obstacles = [], shields = [], heartDrops = [], keyDrops = [];
 
         function resize() {
             dpr = window.devicePixelRatio || 1;
@@ -355,7 +360,6 @@
                 const parsed = JSON.parse(data);
                 highScore = parsed.highScore || 0;
                 keysCollected = parsed.keys || 0;
-                playTimeSeconds = parsed.playTime || 0;
                 player.skin = parsed.skin || 'default';
                 
                 if (parsed.unlockedSkins) {
@@ -382,7 +386,6 @@
             const state = {
                 highScore: highScore,
                 keys: keysCollected,
-                playTime: playTimeSeconds,
                 skin: player.skin,
                 unlockedSkins: unlockedList
             };
@@ -408,8 +411,9 @@
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('skins-menu').classList.add('hidden');
             document.getElementById('key-menu').classList.add('hidden');
-            hearts = 3; currentRunScore = 0; scoreEl.textContent = '0';
-            targets = []; obstacles = []; shields = []; keyDrops = [];
+            hearts = 3; currentRunScore = 0; playTimeSeconds = 0; scoreEl.textContent = '0';
+            timerDisplay.textContent = '00:00';
+            targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = [];
             player.x = player.targetX = width / 2;
             player.y = player.targetY = height * 0.75;
             updateHeartsUI(); 
@@ -441,12 +445,20 @@
             heartsContainer.textContent = str || '💀';
         }
 
+        function formatTime(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const secs = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+
         function triggerDamage() {
             if (player.shieldActive) return;
             playSound('hit');
             hearts--; updateHeartsUI();
             if (hearts <= 0) {
-                alert("Game Over! Returning to Lobby.");
+                gameRunning = false;
+                const survivalTimeStr = formatTime(playTimeSeconds);
+                alert(`Congratulations! You survived for ${survivalTimeStr}. Returning to Lobby.`);
                 openMain();
             }
         }
@@ -512,11 +524,19 @@
             }
         }
         function spawnShieldItem() { shields.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
+        function spawnHeartItem() { heartDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
         function spawnKeyItem() { keyDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 12 }); }
 
         setInterval(() => { if (gameRunning) spawnShieldItem(); }, 25000);
+        setInterval(() => { if (gameRunning) spawnHeartItem(); }, 90000); // Buff heart drops every 90 seconds (1.5 mins)
         setInterval(() => { if (gameRunning) spawnKeyItem(); }, 40000);
-        setInterval(() => { if (gameRunning) { playTimeSeconds++; checkUnlocks(); } }, 1000);
+        setInterval(() => { 
+            if (gameRunning) { 
+                playTimeSeconds++; 
+                timerDisplay.textContent = formatTime(playTimeSeconds);
+                checkUnlocks(); 
+            } 
+        }, 1000);
 
         loadUserData();
 
@@ -529,7 +549,8 @@
             const now = Date.now();
 
             if (gameRunning) {
-                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 2500, 3.5);
+                // Slower progressive speed scaling
+                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 4000, 2.5);
 
                 player.x += (player.targetX - player.x) * 0.25;
                 player.y += (player.targetY - player.y) * 0.25;
@@ -565,7 +586,8 @@
 
                 if (Math.random() < 0.02) spawnTarget();
                 
-                const obstacleSpawnChance = 0.012 + Math.min(currentRunScore / 10000, 0.025);
+                // Reduced obstacle spawn density from start (~60% of original rate)
+                const obstacleSpawnChance = 0.007 + Math.min(currentRunScore / 15000, 0.020);
                 if (Math.random() < obstacleSpawnChance) spawnObstacle();
 
                 // Targets
@@ -612,6 +634,17 @@
                         player.shieldActive = true; player.shieldEndTime = Date.now() + player.shieldDuration;
                         playSound('shield'); shields.splice(i, 1);
                     } else if (sh.y > height + 50) shields.splice(i, 1);
+                });
+
+                // Hearts
+                heartDrops.forEach((hd, i) => {
+                    hd.y += currentScrollSpeed;
+                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('❤️', hd.x, hd.y);
+
+                    if (Math.hypot(player.x - hd.x, player.y - hd.y) < player.radius + hd.radius) {
+                        hearts++; updateHeartsUI(); playSound('heart'); heartDrops.splice(i, 1);
+                    } else if (hd.y > height + 50) heartDrops.splice(i, 1);
                 });
 
                 // Keys
