@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aether Core 4K - Shooting Edition</title>
+    <title>Aether Core 4K</title>
     <style>
         :root {
             --bg-color: #050508;
@@ -78,7 +78,7 @@
             color: var(--accent-color);
         }
 
-        /* Skins Grid Container */
+        /* Skins Grid Container with Fixed Scroll and Scroll from here title */
         .skins-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
             margin: 10px 0; max-height: 200px; overflow-y: auto; overflow-x: hidden;
@@ -122,7 +122,12 @@
             color: var(--accent-color);
         }
         
-        .quest-item, .shop-item {
+        .quest-item {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 8px 10px; margin: 6px 0; width: 100%; text-align: left;
+            display: flex; justify-content: space-between; align-items: center; font-size: 11px;
+        }
+        .shop-item {
             background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 8px; padding: 8px 10px; margin: 6px 0; width: 100%; text-align: left;
             display: flex; justify-content: space-between; align-items: center; font-size: 11px;
@@ -165,7 +170,7 @@
     <div id="main-menu" class="modal-overlay">
         <div class="neon-card">
             <div class="neon-title">AETHER CORE 4K</div>
-            <p style="font-size:11px; color:#8899a6; margin-bottom:3px;">Vertical Neon Ascent + Blasters</p>
+            <p style="font-size:11px; color:#8899a6; margin-bottom:3px;">Vertical Neon Ascent</p>
 
             <div class="high-score-banner" id="menuHighScore">🏆 High Score: 0</div>
             <div class="rank-badge" id="playerRankBadge">Rank: Novice 🥉</div>
@@ -215,6 +220,7 @@
         <div class="neon-card">
             <div class="neon-title" style="color:#00ffaa; font-size:20px;">📜 DAILY QUESTS</div>
             <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Complete challenges to earn bonus keys!</p>
+            <!-- Timer countdown badge for daily quests restart -->
             <div id="questResetTimer" style="background: rgba(0,255,170,0.1); border: 1px solid #00ffaa; border-radius: 8px; padding: 5px; font-size: 11px; color: #00ffaa; font-weight: bold; margin-bottom: 8px;">
                 🔄 Quests Reset In: <span id="resetCountdown">24:00:00</span>
             </div>
@@ -222,7 +228,7 @@
         </div>
     </div>
 
-    <!-- Skins Menu -->
+    <!-- Skins Menu with Scroll from here title at normal size and Separate Dedicated Scroller Section -->
     <div id="skins-menu" class="modal-overlay hidden">
         <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
         <div class="neon-card">
@@ -230,6 +236,7 @@
             <p style="font-size:14px; color:#ffffff; font-weight:bold; margin-bottom:6px;">scroll from here</p>
             <canvas id="previewCanvas" width="60" height="60"></canvas>
 
+            <!-- Separate scroller wrapper for skin listing -->
             <div style="width: 100%; max-height: 210px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 12px; padding: 6px; background: rgba(0,0,0,0.3); margin: 6px 0;">
                 <div class="skins-grid" id="skinsContainer" style="max-height: none; margin: 0;"></div>
             </div>
@@ -258,33 +265,42 @@
         let gameRunning = false;
         let comboMultiplier = 1.0;
         let comboTimer = 0;
-        let selectedGameMode = 'standard';
+        let selectedGameMode = 'standard'; // 'standard' or 'timeline'
 
         let baseScrollSpeed = 2.45; 
         let currentScrollSpeed = 2.45;
 
+        // Upgrades Inventory / Shop Data
         let upgrades = {
             extraLife: { level: 0, max: 5, cost: 5, name: 'Bonus Starting Hearts ❤️', desc: 'Increase starting hearts (+1 per level)' },
-            shieldBoost: { level: 0, max: 5, cost: 3, name: 'Shield Duration +', desc: '+2s extra shield protection time per level' },
-            blasterPower: { level: 0, max: 3, cost: 4, name: 'Laser Blaster Upgrade', desc: 'Fires continuous destructive projectiles' }
+            shieldBoost: { level: 0, max: 5, cost: 3, name: 'Shield Duration +', desc: '+2s extra shield protection time per level' }
         };
 
+        // Expanded Quests Data with more tasks to do & timestamp tracking for reset
         let questsData = {
             lastResetTime: Date.now(),
             quests: [
                 { id: 'survive1', desc: 'Survive for 1 minute in a run', target: 60, current: 0, reward: 2, completed: false },
+                { id: 'survive2', desc: 'Survive for 2 minutes in a run', target: 120, current: 0, reward: 4, completed: false },
+                { id: 'keys1', desc: 'Collect 1 Key in total runs', target: 1, current: 0, reward: 1, completed: false },
                 { id: 'keys5', desc: 'Collect 5 Keys in total runs', target: 5, current: 0, reward: 5, completed: false },
-                { id: 'score1k', desc: 'Reach 1,000 points in any run', target: 1000, current: 0, reward: 3, completed: false }
+                { id: 'keys10', desc: 'Collect 10 Keys in total runs', target: 10, current: 0, reward: 5, completed: false },
+                { id: 'score1k', desc: 'Reach 1,000 points in any run', target: 1000, current: 0, reward: 3, completed: false },
+                { id: 'score3k', desc: 'Reach 3,000 points in any run', target: 3000, current: 0, reward: 4, completed: false },
+                { id: 'score5k', desc: 'Reach 5,000 points in any run', target: 5000, current: 0, reward: 5, completed: false }
             ]
         };
 
+        // Robust Persistent Audio Engine
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
         let lobbyMusicInterval = null;
 
         function initAudio() {
             if (!audioCtx) audioCtx = new AudioCtx();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
         }
 
         function uiClickSound() {
@@ -325,7 +341,10 @@
         }
 
         function stopLobbyMusic() {
-            if (lobbyMusicInterval) { clearInterval(lobbyMusicInterval); lobbyMusicInterval = null; }
+            if (lobbyMusicInterval) {
+                clearInterval(lobbyMusicInterval);
+                lobbyMusicInterval = null;
+            }
         }
 
         function playSound(type) {
@@ -341,12 +360,17 @@
                     osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
                     gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now); osc.stop(now + 0.1);
-                } else if (type === 'shoot') {
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(800, now);
-                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
-                    gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
-                    osc.start(now); osc.stop(now + 0.05);
+                } else if (type === 'key') {
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now); osc.stop(now + 0.2);
+                } else if (type === 'shield' || type === 'heart' || type === 'magnet') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25);
                 } else if (type === 'hit') {
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(150, now);
@@ -357,26 +381,44 @@
             } catch(e) {}
         }
 
+        // Player & Skins
         const player = {
             x: 0, y: 0, targetX: 0, targetY: 0, radius: 16,
             skin: 'default', color: '#00f2fe', emoji: '💎', trail: [],
-            shieldActive: false, shieldEndTime: 0, magnetActive: false, magnetEndTime: 0, lastShotTime: 0
+            shieldActive: false, shieldEndTime: 0, shieldDuration: 5000,
+            magnetActive: false, magnetEndTime: 0
         };
 
-        const emojisList = ['💎','🐉','🕷️','🪵','⭐','🦈','🗿','🛒','🐆','⚡','🔥','❄️','🌌','☀️','👻','🤖','🪐'];
-        const colorsList = ['#00f2fe','#ff0055','#ff0033','#ffaa00','#0055ff','#00ffaa','#aa00ff','#ff9900','#ff3300','#ffff00'];
+        const emojisList = ['💎','🐉','🕷️','🪵','⭐','🦈','🗿','🛒','🐆','⚡','🔥','❄️','🌌','☀️','👻','🤖','🪐','⚡','☣️','👑','☄️','🌀','🦹','💀','🦅','🥷','🐲','🐺','🐅','🐍','💎','👹','👼','☢️','✨','🦠','💻','🕳️','🗡️','⏳','🚀','👽','🦾','💣','🌊','🌋','⚡','🧊','🌠','♾️','🔮','🛡️','🗡️','👑','🔥','⚡','💎','🌟','💫','☄️','💥','🌀','🔮','🧿','🔭','🛰️','🛸','🚀','🪐','🌙','⭐','☀️','⚡','🔥','💧','🌊','❄️','⚡','🌪️','🌋','🧨','💣','🗡️','⚔️','🛡️','🏹','🔧','⚙️','🔩','🧱','🔮','💎','👑','🏆','🥇','🎖️','🏅','💯','🔥','⚡','💀','👻'];
+        const colorsList = ['#00f2fe','#ff0055','#ff0033','#ffaa00','#0055ff','#00ffaa','#aa00ff','#ff9900','#ff3300','#ffff00','#ff4500','#00ffff','#8a2be2','#ffa500','#7fffd4','#708090','#da70d6','#adff2f','#32cd32','#ffd700','#ff6347','#00fa9a','#4b0082','#ff1493','#1e90ff','#2f4f4f','#ff8c00','#d3d3d3','#ff4500','#228b22','#00ced1','#dc143c','#fffacd','#00ff7f','#ffb6c1','#adff2f','#00ff00','#483d8b','#ff0000','#deb887','#4682b4','#39ff14','#778899','#ff4500','#1e90ff','#ff6347','#ffff33','#e0ffff','#9932cc','#ff1493'];
 
         const skins = [];
-        for (let i = 1; i <= 20; i++) {
+        const pricePool = [10, 20, 25, 30];
+        for (let i = 1; i <= 110; i++) {
             let id = i === 1 ? 'default' : `skin_${i}`;
             let name = i === 1 ? 'Neon Vanguard #1' : `Neon Vanguard #${i}`;
             let emoji = emojisList[(i - 1) % emojisList.length];
             let color = colorsList[(i - 1) % colorsList.length];
-            let price = i === 1 ? 0 : (i * 5);
-            skins.push({ id, name, emoji, color, req: i === 1 ? 'Free Default' : `${price} Keys 🔑`, price, unlocked: i === 1 });
+            
+            let price = 0;
+            let req = 'Free Default';
+            if (i > 1) {
+                price = pricePool[(i - 2) % pricePool.length];
+                if (i % 5 === 0) req = `Milestone: ${i * 200} pts`;
+                else if (i % 3 === 0) req = `Mission Unlock (${price} 🔑)`;
+                else if (i % 7 === 0) req = `Rank Tier Unlock`;
+                else req = `${price} Keys 🔑`;
+            }
+            skins.push({ id, name, emoji, color, req, price, unlocked: i === 1 });
         }
+        skins.find(s => s.id === 'skin_2').name = 'Neon Vanguard #2';
+        skins.find(s => s.id === 'skin_2').req = '10 Keys 🔑';
+        skins.find(s => s.id === 'skin_2').price = 10;
+        skins.find(s => s.id === 'skin_8').name = 'Neon Vanguard #8';
+        skins.find(s => s.id === 'skin_8').req = 'Tap Amazon';
+        skins.find(s => s.id === 'skin_8').price = 0;
 
-        let targets = [], obstacles = [], shields = [], heartDrops = [], keyDrops = [], magnetDrops = [], laserBeams = [], bullets = [];
+        let targets = [], obstacles = [], shields = [], heartDrops = [], keyDrops = [], magnetDrops = [], laserBeams = [];
 
         function resize() {
             dpr = window.devicePixelRatio || 1;
@@ -397,7 +439,9 @@
 
         window.addEventListener('pointermove', (e) => handleMove(e.clientX, e.clientY));
         window.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) handleMove(e.touches[0].clientX, e.touches[0].clientY);
+            if (e.touches.length > 0) {
+                handleMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
         }, { passive: true });
 
         function setGameMode(mode) {
@@ -424,6 +468,8 @@
         function getRank(score) {
             if (score >= 3500) return { title: 'Diamond Tier 💎', color: '#00ffaa' };
             if (score >= 1500) return { title: 'Gold Tier 🥇', color: '#ffd700' };
+            if (score >= 1000) return { title: 'Silver Tier 🥈', color: '#c0c0c0' };
+            if (score >= 500) return { title: 'Bronze Tier 🥉', color: '#cd7f32' };
             return { title: 'Novice Tier 🥉', color: '#00f2fe' };
         }
 
@@ -435,6 +481,20 @@
             badge.style.borderColor = rank.color;
         }
 
+        // Check and handle Daily Quests 24h reset cycle
+        function checkQuestResetCycle() {
+            const ONE_DAY = 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            if (now - questsData.lastResetTime >= ONE_DAY) {
+                questsData.lastResetTime = now;
+                questsData.quests.forEach(q => {
+                    q.completed = false;
+                    q.current = 0;
+                });
+                saveUserData();
+            }
+        }
+
         function loadUserData() {
             const data = localStorage.getItem('aetherCore_userState');
             if (data) {
@@ -443,27 +503,68 @@
                 keysCollected = parsed.keys || 0;
                 player.skin = parsed.skin || 'default';
                 if (parsed.upgrades) upgrades = parsed.upgrades;
+                if (parsed.questsData) questsData = parsed.questsData;
+                
                 if (parsed.unlockedSkins) {
                     parsed.unlockedSkins.forEach(id => {
                         const s = skins.find(k => k.id === id);
                         if(s) s.unlocked = true;
                     });
                 }
+
                 const currentSkin = skins.find(s => s.id === player.skin && s.unlocked) || skins[0];
-                player.skin = currentSkin.id; player.color = currentSkin.color; player.emoji = currentSkin.emoji;
+                player.skin = currentSkin.id;
+                player.color = currentSkin.color;
+                player.emoji = currentSkin.emoji;
+
                 keyCountEl.textContent = keysCollected;
                 document.getElementById('menuHighScore').textContent = `🏆 High Score: ${highScore}`;
                 updateRankUI();
             }
+            checkQuestResetCycle();
             startLobbyMusic();
         }
 
         function saveUserData() {
             if (currentRunScore > highScore) highScore = currentRunScore;
             const unlockedList = skins.filter(s => s.unlocked).map(s => s.id);
-            localStorage.setItem('aetherCore_userState', JSON.stringify({ highScore, keys: keysCollected, skin: player.skin, unlockedSkins: unlockedList, upgrades }));
+            const state = {
+                highScore: highScore,
+                keys: keysCollected,
+                skin: player.skin,
+                unlockedSkins: unlockedList,
+                upgrades: upgrades,
+                questsData: questsData
+            };
+            localStorage.setItem('aetherCore_userState', JSON.stringify(state));
             document.getElementById('menuHighScore').textContent = `🏆 High Score: ${highScore}`;
             updateRankUI();
+        }
+
+        function checkUnlocks() {
+            skins.forEach(s => {
+                if (!s.unlocked) {
+                    if (s.req.includes('pts')) {
+                        const reqScore = parseInt(s.req.replace(/[^0-9]/g, ''));
+                        if (currentRunScore >= reqScore || highScore >= reqScore) s.unlocked = true;
+                    }
+                }
+            });
+
+            questsData.quests.forEach(q => {
+                if (!q.completed) {
+                    if (q.id === 'survive1' && playTimeSeconds >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'survive2' && playTimeSeconds >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'keys1' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'keys5' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'keys10' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'score1k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'score3k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
+                    if (q.id === 'score5k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
+                }
+            });
+
+            saveUserData();
         }
 
         function startGame() {
@@ -475,9 +576,10 @@
             document.getElementById('quests-menu').classList.add('hidden');
 
             hearts = 3 + upgrades.extraLife.level;
-            currentRunScore = 0; playTimeSeconds = 0; comboMultiplier = 1.0; scoreEl.textContent = '0';
-            comboDisplay.textContent = '1.0x'; timerDisplay.textContent = '00:00';
-            targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = []; magnetDrops = []; laserBeams = []; bullets = [];
+            currentRunScore = 0; playTimeSeconds = 0; comboMultiplier = 1.0; comboTimer = 0; scoreEl.textContent = '0';
+            comboDisplay.textContent = '1.0x';
+            timerDisplay.textContent = '00:00';
+            targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = []; magnetDrops = []; laserBeams = [];
             player.x = player.targetX = width / 2;
             player.y = player.targetY = height * 0.75;
             updateHeartsUI(); 
@@ -498,9 +600,17 @@
         function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
         function openKeyInfo() { document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; document.getElementById('main-menu').classList.add('hidden'); document.getElementById('key-menu').classList.remove('hidden'); }
         function openShop() { renderShopList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('shop-menu').classList.remove('hidden'); }
-        function openQuests() { renderQuestsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('quests-menu').classList.remove('hidden'); }
-        function openAmazon() { window.open('https://www.amazon.com', '_blank'); }
-        function openCoffee() { window.open('https://www.buymeacoffee.com', '_blank'); }
+        function openQuests() { checkQuestResetCycle(); renderQuestsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('quests-menu').classList.remove('hidden'); }
+
+        function openAmazon() {
+            const amzSkin = skins.find(s => s.id === 'skin_8');
+            if(amzSkin) amzSkin.unlocked = true;
+            saveUserData();
+            window.open('https://www.amazon.com', '_blank');
+        }
+        function openCoffee() {
+            window.open('https://www.buymeacoffee.com', '_blank');
+        }
         function leaveGame() { window.location.href = "https://www.google.com"; }
 
         function updateHeartsUI() {
@@ -517,10 +627,11 @@
         function triggerDamage() {
             if (player.shieldActive) return;
             playSound('hit');
-            hearts--; comboMultiplier = 1.0; comboDisplay.textContent = '1.0x'; updateHeartsUI();
+            hearts--; comboMultiplier = 1.0; comboTimer = 0; comboDisplay.textContent = '1.0x'; updateHeartsUI();
             if (hearts <= 0) {
                 gameRunning = false;
-                alert(`Game Over! Final Score: ${currentRunScore}`);
+                const survivalTimeStr = formatTime(playTimeSeconds);
+                alert(`Congratulations! You survived for ${survivalTimeStr}. Returning to Lobby.`);
                 openMain();
             }
         }
@@ -552,6 +663,15 @@
         function renderQuestsList() {
             const container = document.getElementById('questsContainer');
             container.innerHTML = '';
+            
+            // Calculate and display countdown timer to next reset
+            const ONE_DAY = 24 * 60 * 60 * 1000;
+            const timeLeft = ONE_DAY - (Date.now() - questsData.lastResetTime);
+            const hours = Math.floor(timeLeft / (1000 * 60 * 60)).toString().padStart(2, '0');
+            const mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            const secs = Math.floor((timeLeft % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            document.getElementById('resetCountdown').textContent = `${hours}:${mins}:${secs}`;
+
             questsData.quests.forEach(q => {
                 const div = document.createElement('div');
                 div.className = 'quest-item';
@@ -566,14 +686,20 @@
             const pCanvas = document.getElementById('previewCanvas');
             const pCtx = pCanvas.getContext('2d');
             cancelAnimationFrame(previewAnimId);
+
             function pLoop() {
                 pCtx.clearRect(0, 0, 60, 60);
                 previewAngle += 0.08;
                 const r = 12 + Math.sin(previewAngle) * 2;
+
+                pCtx.shadowBlur = 12; pCtx.shadowColor = skinObj.color;
                 pCtx.fillStyle = '#ffffff';
                 pCtx.beginPath(); pCtx.arc(30, 30, r, 0, Math.PI * 2); pCtx.fill();
+
+                pCtx.shadowBlur = 0;
                 pCtx.font = '14px serif'; pCtx.textAlign = 'center'; pCtx.textBaseline = 'middle';
                 pCtx.fillText(skinObj.emoji, 30, 30);
+
                 previewAnimId = requestAnimationFrame(pLoop);
             }
             pLoop();
@@ -585,36 +711,100 @@
             skins.forEach(s => {
                 const card = document.createElement('div');
                 card.className = `skin-card ${player.skin === s.id ? 'active' : ''} ${!s.unlocked ? 'locked' : ''}`;
-                card.innerHTML = `<div style="font-size:11px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:9px; color:${s.unlocked ? '#00ffaa' : '#ffd700'}; margin-top:2px;">${s.unlocked ? 'Owned' : s.req}</div>`;
+                let actionText = s.unlocked ? 'Equipped/Owned' : `Exchange: ${s.price > 0 ? s.price + ' 🔑' : s.req}`;
+                card.innerHTML = `<div style="font-size:11px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:9px; color:${s.unlocked ? '#00ffaa' : '#ffd700'}; margin-top:2px;">${actionText}</div>`;
                 card.onclick = () => {
                     animatePreview(s);
                     if (s.unlocked) {
                         player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
                         saveUserData(); renderSkinsList();
-                    } else if (keysCollected >= s.price) {
-                        keysCollected -= s.price;
-                        s.unlocked = true;
-                        player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
-                        keyCountEl.textContent = keysCollected;
-                        saveUserData(); renderSkinsList();
+                    } else {
+                        if (s.price > 0 && keysCollected >= s.price) {
+                            keysCollected -= s.price;
+                            s.unlocked = true;
+                            player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
+                            keyCountEl.textContent = keysCollected;
+                            saveUserData(); renderSkinsList();
+                        } else {
+                            alert(s.price > 0 ? 'Not enough Keys 🔑 to unlock this skin!' : 'Unlock this skin via Milestones or Missions!');
+                        }
                     }
                 };
                 container.appendChild(card);
             });
-            animatePreview(skins.find(k => k.id === player.skin) || skins[0]);
+            const activeSkinObj = skins.find(k => k.id === player.skin) || skins[0];
+            animatePreview(activeSkinObj);
         }
-        function unequipSkin() { player.skin = 'default'; player.color = '#00f2fe'; player.emoji = '💎'; saveUserData(); animatePreview(skins[0]); renderSkinsList(); }
+        function unequipSkin() { 
+            player.skin = 'default'; player.color = '#00f2fe'; player.emoji = '💎'; 
+            saveUserData(); animatePreview(skins[0]); renderSkinsList(); 
+        }
 
-        function spawnTarget() {
-            targets.push({ x: Math.random()*(width-60)+30, y: -30, radius: 10, color: '#00ff7f', value: 50 });
+        function spawnTarget() { 
+            let tx = Math.random()*(width-60)+30;
+            let ty = -30;
+            if (selectedGameMode === 'timeline') {
+                ty = Math.random() * (height * 0.6);
+                tx = -30;
+            }
+            
+            let randType = Math.random();
+            let pVal = 50;
+            let pColor = '#00ff7f';
+            let pRadius = 8;
+            if (randType > 0.66) {
+                pVal = 100;
+                pColor = '#00ffff';
+                pRadius = 12;
+            } else if (randType > 0.33) {
+                pVal = 70;
+                pColor = '#0055ff';
+                pRadius = 10;
+            }
+
+            targets.push({ x: tx, y: ty, radius: pRadius, color: pColor, value: pVal, vx: selectedGameMode === 'timeline' ? (Math.random() * 2 + 2) : 0 }); 
         }
+
         function spawnObstacle() {
-            obstacles.push({ type: 'bomb', x: Math.random() * (width - 60) + 30, y: -30, radius: 12 });
+            if (selectedGameMode === 'timeline') {
+                laserBeams.push({ x: Math.random() * (width - 100) + 50, y: 0, w: 12, h: height, warningTimer: 60, active: false });
+            } else {
+                const type = Math.random() > 0.5 ? 'bar' : 'bomb';
+                if (type === 'bar') {
+                    const obsW = Math.random() * 50 + 40;
+                    obstacles.push({ type: 'bar', x: Math.random() * (width - obsW - 40) + 20, y: -30, w: obsW, h: 10 });
+                } else {
+                    obstacles.push({ type: 'bomb', x: Math.random() * (width - 60) + 30, y: -30, radius: 12 });
+                }
+            }
         }
         function spawnShieldItem() { shields.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
+        function spawnHeartItem() { heartDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
         function spawnKeyItem() { keyDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 12 }); }
+        function spawnMagnetItem() { magnetDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
 
-        setInterval(() => { if (gameRunning) { playTimeSeconds++; timerDisplay.textContent = formatTime(playTimeSeconds); } }, 1000);
+        setInterval(() => { if (gameRunning) spawnShieldItem(); }, 25000);
+        setInterval(() => { if (gameRunning) spawnHeartItem(); }, 90000); 
+        setInterval(() => { if (gameRunning) spawnKeyItem(); }, 40000);
+        setInterval(() => { if (gameRunning) spawnMagnetItem(); }, 35000);
+        setInterval(() => { 
+            if (gameRunning) { 
+                playTimeSeconds++; 
+                timerDisplay.textContent = formatTime(playTimeSeconds);
+                
+                // Combo decay check over time
+                if (comboTimer > 0) {
+                    comboTimer--;
+                    if (comboTimer === 0 && comboMultiplier > 1.0) {
+                        comboMultiplier = Math.max(1.0, +(comboMultiplier - 0.2).toFixed(1));
+                        comboDisplay.textContent = comboMultiplier.toFixed(1) + 'x';
+                    }
+                }
+
+                checkUnlocks(); 
+            } 
+        }, 1000);
+
         loadUserData();
 
         function loop() {
@@ -630,84 +820,178 @@
                 player.x += (player.targetX - player.x) * 0.25;
                 player.y += (player.targetY - player.y) * 0.25;
 
-                // Blaster firing mechanism based on upgrades
-                if (upgrades.blasterPower.level > 0 && now - player.lastShotTime > (600 - upgrades.blasterPower.level * 150)) {
-                    bullets.push({ x: player.x, y: player.y - player.radius, vy: -10, radius: 4 });
-                    playSound('shoot');
-                    player.lastShotTime = now;
-                }
+                player.trail.push({ x: player.x, y: player.y });
+                if (player.trail.length > 8) player.trail.shift();
 
-                // Render Player
-                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                player.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
+                ctx.strokeStyle = player.color; ctx.lineWidth = player.radius * 0.5; ctx.stroke();
+
+                ctx.shadowBlur = 15; ctx.shadowColor = player.color; ctx.fillStyle = '#ffffff';
                 ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
+
+                ctx.shadowBlur = 0;
                 ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(player.emoji, player.x, player.y);
 
-                if (Math.random() < 0.04) spawnTarget();
-                if (Math.random() < 0.015) spawnObstacle();
-                if (Math.random() < 0.003) spawnShieldItem();
-                if (Math.random() < 0.004) spawnKeyItem();
+                if (player.shieldActive) {
+                    const duration = 7000 + (upgrades.shieldBoost.level * 2000);
+                    const remainingTime = Math.max(0, player.shieldEndTime - now);
+                    if (remainingTime <= 0) {
+                        player.shieldActive = false;
+                    } else {
+                        const progress = remainingTime / duration;
+                        ctx.beginPath();
+                        ctx.arc(player.x, player.y, player.radius + 8, -Math.PI/2, (-Math.PI/2) + (Math.PI * 2 * progress));
+                        ctx.strokeStyle = '#00f2fe'; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = '#00f2fe';
+                        ctx.stroke();
+                    }
+                }
 
-                // Bullets update & collision
-                bullets.forEach((b, bi) => {
-                    b.y += b.vy;
-                    ctx.fillStyle = '#00f2fe';
-                    ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); ctx.fill();
+                if (player.magnetActive) {
+                    if (now > player.magnetEndTime) {
+                        player.magnetActive = false;
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(player.x, player.y, player.radius + 50, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+                    }
+                }
 
-                    targets.forEach((t, ti) => {
-                        if (Math.hypot(b.x - t.x, b.y - t.y) < b.radius + t.radius) {
-                            currentRunScore += 50;
-                            scoreEl.textContent = currentRunScore;
-                            playSound('score');
-                            targets.splice(ti, 1);
-                            bullets.splice(bi, 1);
-                        }
-                    });
-                    if (b.y < 0) bullets.splice(bi, 1);
-                });
+                if (Math.random() < 0.045) spawnTarget();
+                
+                const obstacleSpawnChance = 0.0035 + Math.min(currentRunScore / 30000, 0.01);
+                if (Math.random() < obstacleSpawnChance) spawnObstacle();
 
-                // Targets update
                 targets.forEach((t, i) => {
-                    t.y += currentScrollSpeed;
-                    ctx.fillStyle = t.color;
-                    ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); ctx.fill();
+                    if (player.magnetActive) {
+                        let angle = Math.atan2(player.y - t.y, player.x - t.x);
+                        t.x += Math.cos(angle) * 7;
+                        t.y += Math.sin(angle) * 7;
+                    }
 
-                    if (Math.hypot(player.x - t.x, player.y - t.y) < player.radius + t.radius) {
-                        currentRunScore += t.value;
-                        scoreEl.textContent = currentRunScore;
-                        playSound('score');
+                    if (selectedGameMode === 'timeline') {
+                        t.x += t.vx;
+                    } else {
+                        t.y += currentScrollSpeed;
+                    }
+
+                    ctx.fillStyle = t.color; ctx.shadowBlur = 12; ctx.shadowColor = t.color;
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+
+                    let collectDist = player.radius + t.radius + (player.magnetActive ? 25 : 0);
+                    if (Math.hypot(player.x - t.x, player.y - t.y) < collectDist) {
+                        comboMultiplier = +(comboMultiplier + 0.2).toFixed(1);
+                        comboTimer = 5; // Reset combo decay window timer to 5 seconds
+                        comboDisplay.textContent = comboMultiplier.toFixed(1) + 'x';
+                        
+                        currentRunScore += Math.floor(t.value * comboMultiplier); 
+                        scoreEl.textContent = currentRunScore; 
+                        playSound('score'); checkUnlocks();
                         targets.splice(i, 1);
-                    } else if (t.y > height + 50) targets.splice(i, 1);
+                    } else if (t.y > height + 50 || t.x > width + 50) {
+                        targets.splice(i, 1);
+                    }
                 });
 
-                // Obstacles update
+                // Laser Timeline Obstacles
+                laserBeams.forEach((l, i) => {
+                    if (l.warningTimer > 0) {
+                        l.warningTimer--;
+                        ctx.strokeStyle = 'rgba(255, 0, 85, 0.4)';
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([6, 6]);
+                        ctx.beginPath();
+                        ctx.moveTo(l.x, 0);
+                        ctx.lineTo(l.x, height);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    } else {
+                        l.active = true;
+                        ctx.strokeStyle = '#ff0055';
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = '#ff0055';
+                        ctx.lineWidth = l.w;
+                        ctx.beginPath();
+                        ctx.moveTo(l.x, 0);
+                        ctx.lineTo(l.x, height);
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+
+                        if (Math.abs(player.x - l.x) < player.radius + (l.w / 2)) {
+                            triggerDamage();
+                        }
+                    }
+                    if (l.warningTimer <= -90) {
+                        laserBeams.splice(i, 1);
+                    }
+                });
+
                 obstacles.forEach((ob, i) => {
                     ob.y += currentScrollSpeed;
-                    ctx.font = '20px serif'; ctx.fillText('💣', ob.x, ob.y);
+                    if (ob.type === 'bar') {
+                        ctx.fillStyle = '#ff2a6d'; ctx.shadowBlur = 8; ctx.shadowColor = '#ff2a6d';
+                        ctx.fillRect(ob.x, ob.y, ob.w, ob.h); ctx.shadowBlur = 0;
 
-                    if (Math.hypot(player.x - ob.x, player.y - ob.y) < player.radius + ob.radius) {
-                        triggerDamage(); obstacles.splice(i, 1);
-                    } else if (ob.y > height + 50) obstacles.splice(i, 1);
+                        if (player.x + player.radius > ob.x && player.x - player.radius < ob.x + ob.w &&
+                            player.y + player.radius > ob.y && player.y - player.radius < ob.y + ob.h) {
+                            triggerDamage(); obstacles.splice(i, 1);
+                        }
+                    } else {
+                        ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                        ctx.fillText('💣', ob.x, ob.y);
+
+                        if (Math.hypot(player.x - ob.x, player.y - ob.y) < player.radius + ob.radius) {
+                            triggerDamage(); obstacles.splice(i, 1);
+                        }
+                    }
+                    if (ob.y > height + 50) obstacles.splice(i, 1);
                 });
 
-                // Shields update
                 shields.forEach((sh, i) => {
                     sh.y += currentScrollSpeed;
-                    ctx.font = '18px serif'; ctx.fillText('🛡️', sh.x, sh.y);
+                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('🛡️', sh.x, sh.y);
+
                     if (Math.hypot(player.x - sh.x, player.y - sh.y) < player.radius + sh.radius) {
-                        player.shieldActive = true; player.shieldEndTime = Date.now() + 7000;
-                        shields.splice(i, 1);
+                        player.shieldActive = true; 
+                        player.shieldEndTime = Date.now() + (7000 + (upgrades.shieldBoost.level * 2000));
+                        playSound('shield'); shields.splice(i, 1);
                     } else if (sh.y > height + 50) shields.splice(i, 1);
                 });
 
-                // Keys update
+                heartDrops.forEach((hd, i) => {
+                    hd.y += currentScrollSpeed;
+                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('❤️', hd.x, hd.y);
+
+                    if (Math.hypot(player.x - hd.x, player.y - hd.y) < player.radius + hd.radius) {
+                        hearts++; updateHeartsUI(); playSound('heart'); heartDrops.splice(i, 1);
+                    } else if (hd.y > height + 50) heartDrops.splice(i, 1);
+                });
+
                 keyDrops.forEach((kd, i) => {
                     kd.y += currentScrollSpeed;
-                    ctx.font = '18px serif'; ctx.fillText('🔑', kd.x, kd.y);
+                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('🔑', kd.x, kd.y);
+
                     if (Math.hypot(player.x - kd.x, player.y - kd.y) < player.radius + kd.radius) {
-                        keysCollected++; keyCountEl.textContent = keysCollected; saveUserData();
+                        keysCollected++; keyCountEl.textContent = keysCollected; playSound('key'); checkUnlocks(); saveUserData();
                         keyDrops.splice(i, 1);
                     } else if (kd.y > height + 50) keyDrops.splice(i, 1);
+                });
+
+                magnetDrops.forEach((md, i) => {
+                    md.y += currentScrollSpeed;
+                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('🧲', md.x, md.y);
+
+                    if (Math.hypot(player.x - md.x, player.y - md.y) < player.radius + md.radius) {
+                        player.magnetActive = true;
+                        player.magnetEndTime = Date.now() + 6000;
+                        playSound('magnet');
+                        magnetDrops.splice(i, 1);
+                    } else if (md.y > height + 50) magnetDrops.splice(i, 1);
                 });
             }
 
