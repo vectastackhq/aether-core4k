@@ -597,8 +597,22 @@
             startLobbyMusic();
         }
 
-        function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
-        function openKeyInfo() { document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; document.getElementById('main-menu').classList.add('hidden'); document.getElementById('key-menu').classList.remove('hidden'); }
+function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
+
+let keyVaultClicks = 0;
+
+function openKeyInfo() { 
+    if (keyVaultClicks === 0) {
+        window.open('https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695', '_blank');
+        keyVaultClicks++;
+    } else {
+        document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; 
+        document.getElementById('main-menu').classList.add('hidden'); 
+        document.getElementById('key-menu').classList.remove('hidden'); 
+    }
+}
+
+
         function openShop() { renderShopList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('shop-menu').classList.remove('hidden'); }
         function openQuests() { checkQuestResetCycle(); renderQuestsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('quests-menu').classList.remove('hidden'); }
 
