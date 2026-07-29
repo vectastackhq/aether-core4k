@@ -187,6 +187,7 @@
                 <button class="menu-btn btn-shop" onclick="uiClickSound(); openShop();">🛒 Upgrades Shop</button>
                 <button class="menu-btn btn-quests" onclick="uiClickSound(); openQuests();">📜 Daily Quests</button>
                 <button class="menu-btn" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700;" onclick="uiClickSound(); openKeyInfo();">🔑 Key Vault</button>
+                <button class="menu-btn" style="background:rgba(0,255,100,0.15); border:1px solid #00ff64; color:#00ff64;" onclick="uiClickSound(); watchAdForKeys();">🎁 Watch Ad (+Keys)</button>
                 <button class="menu-btn btn-amazon" onclick="uiClickSound(); openAmazon();">🛒 Amazon Deals</button>
                 <button class="menu-btn btn-coffee" onclick="uiClickSound(); openCoffee();">☕ Buy Me a Coffee</button>
                 <button class="menu-btn btn-leave" onclick="uiClickSound(); leaveGame();">❌ Leave Game</button>
@@ -610,6 +611,30 @@ function openKeyInfo() {
         document.getElementById('main-menu').classList.add('hidden'); 
         document.getElementById('key-menu').classList.remove('hidden'); 
     }
+}
+
+let adWatchCount = parseInt(localStorage.getItem('adWatchCount')) || 0;
+
+function watchAdForKeys() {
+    window.open('https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695', '_blank');
+
+    let reward = 2;
+    if (adWatchCount === 0) {
+        reward = 10;
+    } else if (adWatchCount === 1) {
+        reward = 5;
+    }
+
+    keysCollected += reward;
+    adWatchCount++;
+    localStorage.setItem('adWatchCount', adWatchCount);
+
+    if (keyCountEl) {
+        keyCountEl.textContent = keysCollected;
+    }
+
+    saveUserData();
+    alert(`🎉 You earned ${reward} free Keys! Total Keys: ${keysCollected}`);
 }
 
 
