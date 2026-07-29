@@ -598,45 +598,49 @@
             startLobbyMusic();
         }
 
-function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
+        function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
 
-let keyVaultClicks = 0;
+        let keyVaultClicks = 0;
 
-function openKeyInfo() { 
-    if (keyVaultClicks === 0) {
-        window.open('https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695', '_blank');
-        keyVaultClicks++;
-    } else {
-        document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; 
-        document.getElementById('main-menu').classList.add('hidden'); 
-        document.getElementById('key-menu').classList.remove('hidden'); 
-    }
-}
+        function openKeyInfo() { 
+            if (keyVaultClicks === 0) {
+                try { window.open('https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695', '_blank'); } catch(e){}
+                keyVaultClicks++;
+            } else {
+                document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; 
+                document.getElementById('main-menu').classList.add('hidden'); 
+                document.getElementById('key-menu').classList.remove('hidden'); 
+            }
+        }
 
-let adWatchCount = parseInt(localStorage.getItem('adWatchCount')) || 0;
+        let adWatchCount = parseInt(localStorage.getItem('adWatchCount')) || 0;
 
-function watchAdForKeys() {
-    window.open('https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695', '_blank');
+        function watchAdForKeys() {
+            try {
+                let win = window.open('https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695', '_blank');
+                if (!win) {
+                    window.location.href = 'https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695';
+                }
+            } catch(e) {}
 
-    let reward = 2;
-    if (adWatchCount === 0) {
-        reward = 10;
-    } else if (adWatchCount === 1) {
-        reward = 5;
-    }
+            let reward = 2;
+            if (adWatchCount === 0) {
+                reward = 10;
+            } else if (adWatchCount === 1) {
+                reward = 5;
+            }
 
-    keysCollected += reward;
-    adWatchCount++;
-    localStorage.setItem('adWatchCount', adWatchCount);
+            keysCollected += reward;
+            adWatchCount++;
+            localStorage.setItem('adWatchCount', adWatchCount);
 
-    if (keyCountEl) {
-        keyCountEl.textContent = keysCollected;
-    }
+            if (keyCountEl) {
+                keyCountEl.textContent = keysCollected;
+            }
 
-    saveUserData();
-    alert(`🎉 You earned ${reward} free Keys! Total Keys: ${keysCollected}`);
-}
-
+            saveUserData();
+            alert(`🎉 You earned ${reward} free Keys! Total Keys: ${keysCollected}`);
+        }
 
         function openShop() { renderShopList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('shop-menu').classList.remove('hidden'); }
         function openQuests() { checkQuestResetCycle(); renderQuestsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('quests-menu').classList.remove('hidden'); }
