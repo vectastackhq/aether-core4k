@@ -418,7 +418,7 @@
         skins.find(s => s.id === 'skin_8').req = 'Tap Amazon';
         skins.find(s => s.id === 'skin_8').price = 0;
 
-        let targets = [], obstacles = [], shields = [], heartDrops = [], keyDrops = [], magnetDrops = [], laserBeams = [];
+        let targets = [], obstacles = [], shields = [], heartDrops = [], keyDrops = [], magnetDrops = [], laserBeams = [], horizontalLasers = [];
 
         function resize() {
             dpr = window.devicePixelRatio || 1;
@@ -579,7 +579,7 @@
             currentRunScore = 0; playTimeSeconds = 0; comboMultiplier = 1.0; comboTimer = 0; scoreEl.textContent = '0';
             comboDisplay.textContent = '1.0x';
             timerDisplay.textContent = '00:00';
-            targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = []; magnetDrops = []; laserBeams = [];
+            targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = []; magnetDrops = []; laserBeams = []; horizontalLasers = [];
             player.x = player.targetX = width / 2;
             player.y = player.targetY = height * 0.75;
             updateHeartsUI(); 
@@ -768,6 +768,19 @@
         function spawnObstacle() {
             if (selectedGameMode === 'timeline') {
                 laserBeams.push({ x: Math.random() * (width - 100) + 50, y: 0, w: 12, h: height, warningTimer: 60, active: false });
+                
+                // Spawn horizontal single-line laser obstacle from left to right side
+                if (Math.random() < 0.6) {
+                    horizontalLasers.push({
+                        x: 0,
+                        y: Math.random() * (height - 100) + 50,
+                        w: width,
+                        h: 12,
+                        warningTimer: 60, // ~1 second warning
+                        activeTimer: 120, // 2 seconds active (at 60fps)
+                        active: false
+                    });
+                }
             } else {
                 const type = Math.random() > 0.5 ? 'bar' : 'bomb';
                 if (type === 'bar') {
@@ -924,6 +937,39 @@
                     }
                     if (l.warningTimer <= -90) {
                         laserBeams.splice(i, 1);
+                    }
+                });
+
+                // Horizontal Single-Line Laser Obstacles (Left to Right)
+                horizontalLasers.forEach((hl, i) => {
+                    if (hl.warningTimer > 0) {
+                        hl.warningTimer--;
+                        ctx.strokeStyle = 'rgba(0, 242, 254, 0.5)';
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([6, 6]);
+                        ctx.beginPath();
+                        ctx.moveTo(0, hl.y);
+                        ctx.lineTo(width, hl.y);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    } else if (hl.activeTimer > 0) {
+                        hl.activeTimer--;
+                        hl.active = true;
+                        ctx.strokeStyle = '#00f2fe';
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = '#00f2fe';
+                        ctx.lineWidth = hl.h;
+                        ctx.beginPath();
+                        ctx.moveTo(0, hl.y);
+                        ctx.lineTo(width, hl.y);
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+
+                        if (Math.abs(player.y - hl.y) < player.radius + (hl.h / 2)) {
+                            triggerDamage();
+                        }
+                    } else {
+                        horizontalLasers.splice(i, 1);
                     }
                 });
 
