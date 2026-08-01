@@ -2,1095 +2,292 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <meta name="6d86878a0e07b7ae25fc0faadf2ef09db733ddeb" content="6d86878a0e07b7ae25fc0faadf2ef09db733ddeb" />
-    <title>Aether Core 4K</title>
-    <!-- Adsterra Smart Link / Anti-Adblock Script Insertion -->
-    <script async src="https://aboardpoodlechat.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open-World Gang Wars & Armory - Web Edition</title>
     <style>
-        :root {
-            --bg-color: #050508;
-            --card-bg: rgba(15, 15, 30, 0.95);
-            --text-color: #ffffff;
-            --accent-color: #00f2fe;
-            --border-color: rgba(0, 242, 254, 0.3);
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #05080c;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
         }
-
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            user-select: none; -webkit-user-select: none; touch-action: none;
-        }
-        body, html {
-            width: 100%; height: 100%; overflow: hidden;
-            background-color: var(--bg-color);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-color);
-        }
-        canvas { display: block; width: 100vw; height: 100vh; }
-
-        /* HUD Header */
         #hud {
-            position: absolute; top: 15px; left: 15px; right: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            pointer-events: none; z-index: 5;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 2px solid #ff3d00;
+            pointer-events: none;
+            box-shadow: 0 0 15px rgba(255,61,0,0.4);
         }
-        .stat-box {
-            background: var(--card-bg); padding: 8px 12px; border-radius: 12px;
-            border: 1px solid var(--border-color); backdrop-filter: blur(10px);
-            display: flex; align-items: center; gap: 10px;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
-            pointer-events: auto;
-        }
-        .stat-label { font-size: 9px; letter-spacing: 1px; color: #8899a6; text-transform: uppercase; }
-        .stat-val { font-size: 18px; font-weight: 800; color: var(--accent-color); }
-        .hearts-val { font-size: 16px; letter-spacing: 2px; }
-
-        .hud-buttons { display: flex; gap: 6px; pointer-events: auto; }
-        .icon-btn {
-            background: var(--card-bg); border: 1px solid var(--border-color);
-            color: var(--text-color); padding: 8px 12px; border-radius: 8px;
-            font-size: 11px; font-weight: bold; cursor: pointer; backdrop-filter: blur(8px);
-        }
-
-        /* Modals */
-        .modal-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 5, 12, 0.95); backdrop-filter: blur(12px);
-            display: flex; justify-content: center; align-items: center; z-index: 100;
-        }
-        .hidden { display: none !important; }
-
-        .neon-card {
-            background: var(--card-bg); border: 2px solid var(--accent-color);
-            border-radius: 20px; padding: 22px; width: 90%; max-width: 480px;
-            max-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            text-align: center; box-shadow: 0 0 30px var(--border-color); position: relative;
-            overflow-y: auto;
-        }
-        .neon-title {
-            font-size: 26px; font-weight: 900;
-            background: linear-gradient(45deg, var(--accent-color), #ff007f);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-
-        /* Rank Badge */
-        .rank-badge {
-            display: inline-block; padding: 4px 12px; border-radius: 20px;
-            font-size: 11px; font-weight: bold; text-transform: uppercase;
-            margin-top: 4px; background: rgba(0, 242, 254, 0.15); border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-        }
-
-        /* Skins Grid Container with Fixed Scroll and Scroll from here title */
-        .skins-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-            margin: 10px 0; max-height: 200px; overflow-y: auto; overflow-x: hidden;
-            width: 100%; padding: 4px; pointer-events: auto; touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-        }
-        .skins-grid::-webkit-scrollbar { width: 6px; }
-        .skins-grid::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-
-        .skin-card {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px; padding: 10px 8px; text-align: center; cursor: pointer;
-            transition: all 0.2s; pointer-events: auto;
-        }
-        .skin-card.active { border-color: var(--accent-color); background: rgba(0, 242, 254, 0.15); box-shadow: 0 0 10px var(--border-color); }
-        .skin-card.locked { opacity: 0.55; }
-
-        #previewCanvas {
-            width: 60px; height: 60px; margin: 0 auto 6px;
-            border-radius: 50%; background: rgba(0, 0, 0, 0.5); border: 2px solid var(--accent-color);
-            box-shadow: 0 0 15px var(--border-color); flex-shrink: 0;
-        }
-
-        .menu-btn {
-            width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 10px;
-            font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 11px;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-enter { background: linear-gradient(45deg, #00f2fe, #4facfe); color: #000; }
-        .btn-skins { background: transparent; border: 2px solid #ff007f; color: #ff007f; }
-        .btn-shop { background: rgba(255, 215, 0, 0.15); border: 2px solid #ffd700; color: #ffd700; }
-        .btn-quests { background: rgba(0, 255, 170, 0.15); border: 2px solid #00ffaa; color: #00ffaa; }
-        .btn-amazon { background: rgba(255, 153, 0, 0.15); border: 2px solid #ff9900; color: #ff9900; }
-        .btn-coffee { background: rgba(255, 105, 180, 0.15); border: 2px solid #ff69b4; color: #ff69b4; }
-        .btn-leave { background: rgba(255, 42, 109, 0.15); border: 1px solid #ff2a6d; color: #ff2a6d; }
-        .btn-back { position: absolute; top: 15px; left: 15px; background: transparent; border: 1px solid #8899a6; color: #8899a6; padding: 6px 12px; border-radius: 6px; z-index: 10; cursor: pointer; }
-
-        .high-score-banner {
-            background: rgba(0, 242, 254, 0.1); border: 1px solid var(--accent-color);
-            border-radius: 10px; padding: 6px; margin: 8px 0 4px; font-size: 12px; font-weight: bold;
-            color: var(--accent-color);
-        }
-        
-        .quest-item {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px; padding: 8px 10px; margin: 6px 0; width: 100%; text-align: left;
-            display: flex; justify-content: space-between; align-items: center; font-size: 11px;
-        }
-        .shop-item {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px; padding: 8px 10px; margin: 6px 0; width: 100%; text-align: left;
-            display: flex; justify-content: space-between; align-items: center; font-size: 11px;
+        h2 { margin: 0 0 8px 0; font-size: 16px; color: #ff3d00; letter-spacing: 1px; }
+        p { margin: 3px 0; font-size: 13px; color: #ddd; }
+        #interaction-prompt {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #ffeb3b;
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: 1px solid #ffeb3b;
+            font-weight: bold;
+            display: none;
+            pointer-events: none;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-
-    <!-- HUD -->
     <div id="hud">
-        <div class="stat-box">
-            <div>
-                <div class="stat-label">⚡ Score</div>
-                <div id="score" class="stat-val">0</div>
-            </div>
-            <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
-                <div class="stat-label">🔑 Keys</div>
-                <div id="keyCount" class="stat-val" style="color:#ffd700;">0</div>
-            </div>
-            <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
-                <div class="stat-label">🔥 Combo</div>
-                <div id="comboDisplay" class="stat-val" style="font-size:14px; color:#ff9900;">1.0x</div>
-            </div>
-            <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
-                <div class="stat-label">⏱️ Time</div>
-                <div id="timerDisplay" class="stat-val" style="font-size:14px; color:#ff007f;">00:00</div>
-            </div>
-            <div style="border-left: 1px solid var(--border-color); padding-left: 8px;">
-                <div class="stat-label">Lives</div>
-                <div id="heartsContainer" class="hearts-val">❤️❤️❤️</div>
-            </div>
-        </div>
-
-        <div class="hud-buttons">
-            <button id="lobbyBtn" class="icon-btn" style="border-color:#00f2fe; color:#00f2fe;" onclick="uiClickSound(); openMain();">🏠 Lobby</button>
-        </div>
+        <h2>GANG WARS & ARMORY SIMULATOR</h2>
+        <p id="mode-text">MODE: Walking on Foot</p>
+        <p id="weapon-text">WEAPON: Unarmed</p>
+        <p id="ammo-text">AMMO: --</p>
+        <p id="health-text">HEALTH: 100%</p>
+        <p><b>CONTROLS:</b> [W/A/S/D] Move/Drive | [F] Enter/Exit Car | [E] Interact | [SPACE] Shoot</p>
     </div>
 
-    <!-- Main Menu -->
-    <div id="main-menu" class="modal-overlay">
-        <div class="neon-card">
-            <div class="neon-title">AETHER CORE 4K</div>
-            <p style="font-size:11px; color:#8899a6; margin-bottom:3px;">Vertical Neon Ascent</p>
+    <div id="interaction-prompt">PRESS [E] TO INTERACT / BUY WEAPONS / REFUEL</div>
 
-            <div class="high-score-banner" id="menuHighScore">🏆 High Score: 0</div>
-            <div class="rank-badge" id="playerRankBadge">Rank: Novice 🥉</div>
-
-            <!-- Game Mode Selector -->
-            <div style="margin: 8px 0; width: 100%; display: flex; gap: 5px;">
-                <button id="modeStandardBtn" class="icon-btn" style="flex:1; border-color:var(--accent-color); color:var(--accent-color); background:rgba(0,242,254,0.2);" onclick="uiClickSound(); setGameMode('standard')">⚡ Standard</button>
-                <button id="modeTimelineBtn" class="icon-btn" style="flex:1; border-color:#ff007f; color:#ff007f;" onclick="uiClickSound(); setGameMode('timeline')">🌌 Timeline</button>
-            </div>
-
-            <div style="margin-top: 5px; width: 100%;">
-                <button class="menu-btn btn-enter" onclick="uiClickSound(); startGame();">⚡ Enter Game</button>
-                <button class="menu-btn btn-skins" onclick="uiClickSound(); openSkins();">✨ Skins & Powers</button>
-                <button class="menu-btn btn-shop" onclick="uiClickSound(); openShop();">🛒 Upgrades Shop</button>
-                <button class="menu-btn btn-quests" onclick="uiClickSound(); openQuests();">📜 Daily Quests</button>
-                <button class="menu-btn" style="background:rgba(255,215,0,0.15); border:1px solid #ffd700; color:#ffd700;" onclick="uiClickSound(); openKeyInfo();">🔑 Key Vault</button>
-                <button class="menu-btn" style="background:rgba(0,255,100,0.15); border:1px solid #00ff64; color:#00ff64;" onclick="uiClickSound(); watchAdForKeys();">🎁 Watch Ad (+Keys)</button>
-                <button class="menu-btn btn-amazon" onclick="uiClickSound(); openAmazon();">🛒 Amazon Deals</button>
-                <button class="menu-btn btn-coffee" onclick="uiClickSound(); openCoffee();">☕ Buy Me a Coffee</button>
-                <button class="menu-btn btn-leave" onclick="uiClickSound(); leaveGame();">❌ Leave Game</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Key Vault -->
-    <div id="key-menu" class="modal-overlay hidden">
-        <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
-        <div class="neon-card">
-            <div class="neon-title" style="color:#ffd700; font-size:22px;">🔑 KEY VAULT</div>
-            <p style="font-size:13px; margin:15px 0; color:#ccc;">Golden Keys spawn randomly during gameplay. Collect Keys to exchange for massive custom skins inside Skins & Powers!</p>
-            <h3 style="color:#ffd700; font-size:20px;" id="vaultKeysText">Keys Collected: 0 🔑</h3>
-        </div>
-    </div>
-
-    <!-- Upgrades Shop Menu -->
-    <div id="shop-menu" class="modal-overlay hidden">
-        <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
-        <div class="neon-card">
-            <div class="neon-title" style="color:#ffd700; font-size:20px;">🛒 UPGRADES SHOP</div>
-            <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Spend your Keys 🔑 to buy permanent boosts & max levels!</p>
-            <div style="width: 100%;" id="shopItemsContainer"></div>
-        </div>
-    </div>
-
-    <!-- Daily Quests Menu -->
-    <div id="quests-menu" class="modal-overlay hidden">
-        <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
-        <div class="neon-card">
-            <div class="neon-title" style="color:#00ffaa; font-size:20px;">📜 DAILY QUESTS</div>
-            <p style="font-size:11px; color:#aaa; margin:5px 0 10px;">Complete challenges to earn bonus keys!</p>
-            <!-- Timer countdown badge for daily quests restart -->
-            <div id="questResetTimer" style="background: rgba(0,255,170,0.1); border: 1px solid #00ffaa; border-radius: 8px; padding: 5px; font-size: 11px; color: #00ffaa; font-weight: bold; margin-bottom: 8px;">
-                🔄 Quests Reset In: <span id="resetCountdown">24:00:00</span>
-            </div>
-            <div style="width: 100%; max-height: 240px; overflow-y: auto; padding-right: 4px;" id="questsContainer"></div>
-        </div>
-    </div>
-
-    <!-- Skins Menu with Scroll from here title at normal size and Separate Dedicated Scroller Section -->
-    <div id="skins-menu" class="modal-overlay hidden">
-        <button class="btn-back" onclick="uiClickSound(); openMain();">← Go Back</button>
-        <div class="neon-card">
-            <h3 style="font-size: 14px; color:var(--accent-color); margin-bottom:2px;">SKIN PREVIEW</h3>
-            <p style="font-size:14px; color:#ffffff; font-weight:bold; margin-bottom:6px;">scroll from here</p>
-            <canvas id="previewCanvas" width="60" height="60"></canvas>
-
-            <!-- Separate scroller wrapper for skin listing -->
-            <div style="width: 100%; max-height: 210px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 12px; padding: 6px; background: rgba(0,0,0,0.3); margin: 6px 0;">
-                <div class="skins-grid" id="skinsContainer" style="max-height: none; margin: 0;"></div>
-            </div>
-
-            <button class="menu-btn btn-skins" onclick="uiClickSound(); unequipSkin();" style="font-size:11px; padding:8px; flex-shrink:0;">Reset Default Skin</button>
-        </div>
-    </div>
-
-    <canvas id="gameCanvas"></canvas>
-
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreEl = document.getElementById('score');
-        const keyCountEl = document.getElementById('keyCount');
-        const comboDisplay = document.getElementById('comboDisplay');
-        const timerDisplay = document.getElementById('timerDisplay');
-        const heartsContainer = document.getElementById('heartsContainer');
-
-        let width, height, dpr;
-        let currentRunScore = 0;
-        let highScore = 0;
-        let keysCollected = 0;
-        let playTimeSeconds = 0;
-        let hearts = 3;
-        let gameRunning = false;
-        let comboMultiplier = 1.0;
-        let comboTimer = 0;
-        let selectedGameMode = 'standard'; // 'standard' or 'timeline'
-
-        let baseScrollSpeed = 2.45; 
-        let currentScrollSpeed = 2.45;
-
-        // Upgrades Inventory / Shop Data
-        let upgrades = {
-            extraLife: { level: 0, max: 5, cost: 5, name: 'Bonus Starting Hearts ❤️', desc: 'Increase starting hearts (+1 per level)' },
-            shieldBoost: { level: 0, max: 5, cost: 3, name: 'Shield Duration +', desc: '+2s extra shield protection time per level' }
-        };
-
-        // Expanded Quests Data with more tasks to do & timestamp tracking for reset
-        let questsData = {
-            lastResetTime: Date.now(),
-            quests: [
-                { id: 'survive1', desc: 'Survive for 1 minute in a run', target: 60, current: 0, reward: 2, completed: false },
-                { id: 'survive2', desc: 'Survive for 2 minutes in a run', target: 120, current: 0, reward: 4, completed: false },
-                { id: 'keys1', desc: 'Collect 1 Key in total runs', target: 1, current: 0, reward: 1, completed: false },
-                { id: 'keys5', desc: 'Collect 5 Keys in total runs', target: 5, current: 0, reward: 5, completed: false },
-                { id: 'keys10', desc: 'Collect 10 Keys in total runs', target: 10, current: 0, reward: 5, completed: false },
-                { id: 'score1k', desc: 'Reach 1,000 points in any run', target: 1000, current: 0, reward: 3, completed: false },
-                { id: 'score3k', desc: 'Reach 3,000 points in any run', target: 3000, current: 0, reward: 4, completed: false },
-                { id: 'score5k', desc: 'Reach 5,000 points in any run', target: 5000, current: 0, reward: 5, completed: false }
-            ]
-        };
-
-        // Robust Persistent Audio Engine
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
-        let lobbyMusicInterval = null;
-
-        function initAudio() {
-            if (!audioCtx) audioCtx = new AudioCtx();
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+    <!-- Import Three.js via CDN -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
             }
         }
-
-        function uiClickSound() {
-            initAudio();
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, now);
-                osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
-                gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-                osc.start(now); osc.stop(now + 0.08);
-            } catch(e) {}
-        }
-
-        function startLobbyMusic() {
-            if (lobbyMusicInterval) return;
-            const notes = [220, 246.94, 261.63, 329.63, 392.00, 440];
-            let step = 0;
-            lobbyMusicInterval = setInterval(() => {
-                if (gameRunning) return;
-                initAudio();
-                try {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    const now = audioCtx.currentTime;
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(notes[step % notes.length], now);
-                    gain.gain.setValueAtTime(0.05, now);
-                    gain.gain.linearRampToValueAtTime(0.001, now + 0.3);
-                    osc.start(now); osc.stop(now + 0.3);
-                    step++;
-                } catch(e) {}
-            }, 350);
-        }
-
-        function stopLobbyMusic() {
-            if (lobbyMusicInterval) {
-                clearInterval(lobbyMusicInterval);
-                lobbyMusicInterval = null;
-            }
-        }
-
-        function playSound(type) {
-            initAudio();
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
-
-                if (type === 'score') {
-                    osc.frequency.setValueAtTime(587.33, now);
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-                    gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now); osc.stop(now + 0.1);
-                } else if (type === 'key') {
-                    osc.frequency.setValueAtTime(523.25, now);
-                    osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.2);
-                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(now); osc.stop(now + 0.2);
-                } else if (type === 'shield' || type === 'heart' || type === 'magnet') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.25);
-                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now); osc.stop(now + 0.25);
-                } else if (type === 'hit') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.linearRampToValueAtTime(40, now + 0.2);
-                    gain.gain.setValueAtTime(0.25, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(now); osc.stop(now + 0.2);
-                }
-            } catch(e) {}
-        }
-
-        // Player & Skins
-        const player = {
-            x: 0, y: 0, targetX: 0, targetY: 0, radius: 16,
-            skin: 'default', color: '#00f2fe', emoji: '💎', trail: [],
-            shieldActive: false, shieldEndTime: 0, shieldDuration: 5000,
-            magnetActive: false, magnetEndTime: 0
-        };
-
-        const emojisList = ['💎','🐉','🕷️','🪵','⭐','🦈','🗿','🛒','🐆','⚡','🔥','❄️','🌌','☀️','👻','🤖','🪐','⚡','☣️','👑','☄️','🌀','🦹','💀','🦅','🥷','🐲','🐺','🐅','🐍','💎','👹','👼','☢️','✨','🦠','💻','🕳️','🗡️','⏳','🚀','👽','🦾','💣','🌊','🌋','⚡','🧊','🌠','♾️','🔮','🛡️','🗡️','👑','🔥','⚡','💎','🌟','💫','☄️','💥','🌀','🔮','🧿','🔭','🛰️','🛸','🚀','🪐','🌙','⭐','☀️','⚡','🔥','💧','🌊','❄️','⚡','🌪️','🌋','🧨','💣','🗡️','⚔️','🛡️','🏹','🔧','⚙️','🔩','🧱','🔮','💎','👑','🏆','🥇','🎖️','🏅','💯','🔥','⚡','💀','👻'];
-        const colorsList = ['#00f2fe','#ff0055','#ff0033','#ffaa00','#0055ff','#00ffaa','#aa00ff','#ff9900','#ff3300','#ffff00','#ff4500','#00ffff','#8a2be2','#ffa500','#7fffd4','#708090','#da70d6','#adff2f','#32cd32','#ffd700','#ff6347','#00fa9a','#4b0082','#ff1493','#1e90ff','#2f4f4f','#ff8c00','#d3d3d3','#ff4500','#228b22','#00ced1','#dc143c','#fffacd','#00ff7f','#ffb6c1','#adff2f','#00ff00','#483d8b','#ff0000','#deb887','#4682b4','#39ff14','#778899','#ff4500','#1e90ff','#ff6347','#ffff33','#e0ffff','#9932cc','#ff1493'];
-
-        const skins = [];
-        const pricePool = [10, 20, 25, 30];
-        for (let i = 1; i <= 110; i++) {
-            let id = i === 1 ? 'default' : `skin_${i}`;
-            let name = i === 1 ? 'Neon Vanguard #1' : `Neon Vanguard #${i}`;
-            let emoji = emojisList[(i - 1) % emojisList.length];
-            let color = colorsList[(i - 1) % colorsList.length];
-            
-            let price = 0;
-            let req = 'Free Default';
-            if (i > 1) {
-                price = pricePool[(i - 2) % pricePool.length];
-                if (i % 5 === 0) req = `Milestone: ${i * 200} pts`;
-                else if (i % 3 === 0) req = `Mission Unlock (${price} 🔑)`;
-                else if (i % 7 === 0) req = `Rank Tier Unlock`;
-                else req = `${price} Keys 🔑`;
-            }
-            skins.push({ id, name, emoji, color, req, price, unlocked: i === 1 });
-        }
-        skins.find(s => s.id === 'skin_2').name = 'Neon Vanguard #2';
-        skins.find(s => s.id === 'skin_2').req = '10 Keys 🔑';
-        skins.find(s => s.id === 'skin_2').price = 10;
-        skins.find(s => s.id === 'skin_8').name = 'Neon Vanguard #8';
-        skins.find(s => s.id === 'skin_8').req = 'Tap Amazon';
-        skins.find(s => s.id === 'skin_8').price = 0;
-
-        let targets = [], obstacles = [], shields = [], heartDrops = [], keyDrops = [], magnetDrops = [], laserBeams = [], horizontalLasers = [];
-
-        function resize() {
-            dpr = window.devicePixelRatio || 1;
-            width = window.innerWidth; height = window.innerHeight;
-            canvas.width = width * dpr; canvas.height = height * dpr;
-            ctx.scale(dpr, dpr);
-            if (player.x === 0) { player.x = player.targetX = width / 2; player.y = player.targetY = height * 0.75; }
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        function handleMove(clientX, clientY) {
-            if (gameRunning) {
-                player.targetX = clientX;
-                player.targetY = clientY;
-            }
-        }
-
-        window.addEventListener('pointermove', (e) => handleMove(e.clientX, e.clientY));
-        window.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                handleMove(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        }, { passive: true });
-
-        function setGameMode(mode) {
-            selectedGameMode = mode;
-            const stdBtn = document.getElementById('modeStandardBtn');
-            const tlBtn = document.getElementById('modeTimelineBtn');
-            if (mode === 'standard') {
-                stdBtn.style.background = 'rgba(0,242,254,0.2)';
-                stdBtn.style.borderColor = 'var(--accent-color)';
-                stdBtn.style.color = 'var(--accent-color)';
-                tlBtn.style.background = 'transparent';
-                tlBtn.style.borderColor = '#ff007f';
-                tlBtn.style.color = '#ff007f';
-            } else {
-                tlBtn.style.background = 'rgba(255,0,127,0.2)';
-                tlBtn.style.borderColor = '#ff007f';
-                tlBtn.style.color = '#ff007f';
-                stdBtn.style.background = 'transparent';
-                stdBtn.style.borderColor = 'var(--accent-color)';
-                stdBtn.style.color = 'var(--accent-color)';
-            }
-        }
-
-        function getRank(score) {
-            if (score >= 3500) return { title: 'Diamond Tier 💎', color: '#00ffaa' };
-            if (score >= 1500) return { title: 'Gold Tier 🥇', color: '#ffd700' };
-            if (score >= 1000) return { title: 'Silver Tier 🥈', color: '#c0c0c0' };
-            if (score >= 500) return { title: 'Bronze Tier 🥉', color: '#cd7f32' };
-            return { title: 'Novice Tier 🥉', color: '#00f2fe' };
-        }
-
-        function updateRankUI() {
-            const rank = getRank(highScore);
-            const badge = document.getElementById('playerRankBadge');
-            badge.textContent = `Rank: ${rank.title}`;
-            badge.style.color = rank.color;
-            badge.style.borderColor = rank.color;
-        }
-
-        // Check and handle Daily Quests 24h reset cycle
-        function checkQuestResetCycle() {
-            const ONE_DAY = 24 * 60 * 60 * 1000;
-            const now = Date.now();
-            if (now - questsData.lastResetTime >= ONE_DAY) {
-                questsData.lastResetTime = now;
-                questsData.quests.forEach(q => {
-                    q.completed = false;
-                    q.current = 0;
-                });
-                saveUserData();
-            }
-        }
-
-        function loadUserData() {
-            const data = localStorage.getItem('aetherCore_userState');
-            if (data) {
-                const parsed = JSON.parse(data);
-                highScore = parsed.highScore || 0;
-                keysCollected = parsed.keys || 0;
-                player.skin = parsed.skin || 'default';
-                if (parsed.upgrades) upgrades = parsed.upgrades;
-                if (parsed.questsData) questsData = parsed.questsData;
-                
-                if (parsed.unlockedSkins) {
-                    parsed.unlockedSkins.forEach(id => {
-                        const s = skins.find(k => k.id === id);
-                        if(s) s.unlocked = true;
-                    });
-                }
-
-                const currentSkin = skins.find(s => s.id === player.skin && s.unlocked) || skins[0];
-                player.skin = currentSkin.id;
-                player.color = currentSkin.color;
-                player.emoji = currentSkin.emoji;
-
-                keyCountEl.textContent = keysCollected;
-                document.getElementById('menuHighScore').textContent = `🏆 High Score: ${highScore}`;
-                updateRankUI();
-            }
-            checkQuestResetCycle();
-            startLobbyMusic();
-        }
-
-        function saveUserData() {
-            if (currentRunScore > highScore) highScore = currentRunScore;
-            const unlockedList = skins.filter(s => s.unlocked).map(s => s.id);
-            const state = {
-                highScore: highScore,
-                keys: keysCollected,
-                skin: player.skin,
-                unlockedSkins: unlockedList,
-                upgrades: upgrades,
-                questsData: questsData
-            };
-            localStorage.setItem('aetherCore_userState', JSON.stringify(state));
-            document.getElementById('menuHighScore').textContent = `🏆 High Score: ${highScore}`;
-            updateRankUI();
-        }
-
-        function checkUnlocks() {
-            skins.forEach(s => {
-                if (!s.unlocked) {
-                    if (s.req.includes('pts')) {
-                        const reqScore = parseInt(s.req.replace(/[^0-9]/g, ''));
-                        if (currentRunScore >= reqScore || highScore >= reqScore) s.unlocked = true;
-                    }
-                }
-            });
-
-            questsData.quests.forEach(q => {
-                if (!q.completed) {
-                    if (q.id === 'survive1' && playTimeSeconds >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'survive2' && playTimeSeconds >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'keys1' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'keys5' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'keys10' && keysCollected >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'score1k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'score3k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
-                    if (q.id === 'score5k' && currentRunScore >= q.target) { q.completed = true; keysCollected += q.reward; }
-                }
-            });
-
-            saveUserData();
-        }
-
-        function startGame() {
-            stopLobbyMusic();
-            document.getElementById('main-menu').classList.add('hidden');
-            document.getElementById('skins-menu').classList.add('hidden');
-            document.getElementById('key-menu').classList.add('hidden');
-            document.getElementById('shop-menu').classList.add('hidden');
-            document.getElementById('quests-menu').classList.add('hidden');
-
-            hearts = 3 + upgrades.extraLife.level;
-            currentRunScore = 0; playTimeSeconds = 0; comboMultiplier = 1.0; comboTimer = 0; scoreEl.textContent = '0';
-            comboDisplay.textContent = '1.0x';
-            timerDisplay.textContent = '00:00';
-            targets = []; obstacles = []; shields = []; heartDrops = []; keyDrops = []; magnetDrops = []; laserBeams = []; horizontalLasers = [];
-            player.x = player.targetX = width / 2;
-            player.y = player.targetY = height * 0.75;
-            updateHeartsUI(); 
-            gameRunning = true;
-        }
-
-        function openMain() {
-            gameRunning = false;
-            saveUserData();
-            document.getElementById('skins-menu').classList.add('hidden');
-            document.getElementById('key-menu').classList.add('hidden');
-            document.getElementById('shop-menu').classList.add('hidden');
-            document.getElementById('quests-menu').classList.add('hidden');
-            document.getElementById('main-menu').classList.remove('hidden');
-            startLobbyMusic();
-        }
-
-        function openSkins() { renderSkinsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('skins-menu').classList.remove('hidden'); }
-
-        let keyVaultClicks = 0;
-
-        function openKeyInfo() { 
-            if (keyVaultClicks === 0) {
-                try { window.open('https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695', '_blank'); } catch(e){}
-                keyVaultClicks++;
-            } else {
-                document.getElementById('vaultKeysText').textContent = `Keys Collected: ${keysCollected} 🔑`; 
-                document.getElementById('main-menu').classList.add('hidden'); 
-                document.getElementById('key-menu').classList.remove('hidden'); 
-            }
-        }
-
-        let adWatchCount = parseInt(localStorage.getItem('adWatchCount')) || 0;
-
-        function watchAdForKeys() {
-            try {
-                let win = window.open('https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695', '_blank');
-                if (!win) {
-                    window.location.href = 'https://www.effectivecpmnetwork.com/wtbnmfdu?key=4b2a5ca85c38426bae95886089cf7695';
-                }
-            } catch(e) {}
-
-            let reward = 2;
-            if (adWatchCount === 0) {
-                reward = 10;
-            } else if (adWatchCount === 1) {
-                reward = 5;
-            }
-
-            keysCollected += reward;
-            adWatchCount++;
-            localStorage.setItem('adWatchCount', adWatchCount);
-
-            if (keyCountEl) {
-                keyCountEl.textContent = keysCollected;
-            }
-
-            saveUserData();
-            alert(`🎉 You earned ${reward} free Keys! Total Keys: ${keysCollected}`);
-        }
-
-        function openShop() { renderShopList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('shop-menu').classList.remove('hidden'); }
-        function openQuests() { checkQuestResetCycle(); renderQuestsList(); document.getElementById('main-menu').classList.add('hidden'); document.getElementById('quests-menu').classList.remove('hidden'); }
-
-        function openAmazon() {
-            const amzSkin = skins.find(s => s.id === 'skin_8');
-            if(amzSkin) amzSkin.unlocked = true;
-            saveUserData();
-            window.open('https://www.amazon.com', '_blank');
-        }
-        function openCoffee() {
-            window.open('https://www.buymeacoffee.com', '_blank');
-        }
-        function leaveGame() { window.location.href = "https://www.google.com"; }
-
-        function updateHeartsUI() {
-            let str = ''; for(let i=0; i<hearts; i++) str += '❤️';
-            heartsContainer.textContent = str || '💀';
-        }
-
-        function formatTime(totalSeconds) {
-            const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-            const secs = (totalSeconds % 60).toString().padStart(2, '0');
-            return `${mins}:${secs}`;
-        }
-
-        function triggerDamage() {
-            if (player.shieldActive) return;
-            playSound('hit');
-            hearts--; comboMultiplier = 1.0; comboTimer = 0; comboDisplay.textContent = '1.0x'; updateHeartsUI();
-            if (hearts <= 0) {
-                gameRunning = false;
-                const survivalTimeStr = formatTime(playTimeSeconds);
-                alert(`Congratulations! You survived for ${survivalTimeStr}. Returning to Lobby.`);
-                openMain();
-            }
-        }
-
-        function renderShopList() {
-            const container = document.getElementById('shopItemsContainer');
-            container.innerHTML = '';
-            Object.keys(upgrades).forEach(key => {
-                const upg = upgrades[key];
-                const div = document.createElement('div');
-                div.className = 'shop-item';
-                div.innerHTML = `<div><strong>${upg.name}</strong><br><span style="font-size:9px; color:#aaa;">${upg.desc} (Lvl ${upg.level}/${upg.max})</span></div>` +
-                                `<button class="icon-btn" style="color:#ffd700; border-color:#ffd700;" onclick="uiClickSound(); buyUpgrade('${key}')">${upg.level >= upg.max ? 'MAX' : upg.cost + ' 🔑'}</button>`;
-                container.appendChild(div);
-            });
-        }
-
-        function buyUpgrade(key) {
-            const upg = upgrades[key];
-            if (upg.level < upg.max && keysCollected >= upg.cost) {
-                keysCollected -= upg.cost;
-                upg.level++;
-                keyCountEl.textContent = keysCollected;
-                saveUserData();
-                renderShopList();
-            }
-        }
-
-        function renderQuestsList() {
-            const container = document.getElementById('questsContainer');
-            container.innerHTML = '';
-            
-            // Calculate and display countdown timer to next reset
-            const ONE_DAY = 24 * 60 * 60 * 1000;
-            const timeLeft = ONE_DAY - (Date.now() - questsData.lastResetTime);
-            const hours = Math.floor(timeLeft / (1000 * 60 * 60)).toString().padStart(2, '0');
-            const mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            const secs = Math.floor((timeLeft % (1000 * 60)) / 1000).toString().padStart(2, '0');
-            document.getElementById('resetCountdown').textContent = `${hours}:${mins}:${secs}`;
-
-            questsData.quests.forEach(q => {
-                const div = document.createElement('div');
-                div.className = 'quest-item';
-                div.innerHTML = `<div><strong>${q.desc}</strong><br><span style="font-size:9px; color:#00ffaa;">Reward: +${q.reward} 🔑</span></div>` +
-                                `<div style="font-weight:bold; color:${q.completed ? '#00ffaa' : '#ff9900'};">${q.completed ? 'COMPLETED ✅' : 'IN PROGRESS'}</div>`;
-                container.appendChild(div);
-            });
-        }
-
-        let previewAnimId, previewAngle = 0;
-        function animatePreview(skinObj) {
-            const pCanvas = document.getElementById('previewCanvas');
-            const pCtx = pCanvas.getContext('2d');
-            cancelAnimationFrame(previewAnimId);
-
-            function pLoop() {
-                pCtx.clearRect(0, 0, 60, 60);
-                previewAngle += 0.08;
-                const r = 12 + Math.sin(previewAngle) * 2;
-
-                pCtx.shadowBlur = 12; pCtx.shadowColor = skinObj.color;
-                pCtx.fillStyle = '#ffffff';
-                pCtx.beginPath(); pCtx.arc(30, 30, r, 0, Math.PI * 2); pCtx.fill();
-
-                pCtx.shadowBlur = 0;
-                pCtx.font = '14px serif'; pCtx.textAlign = 'center'; pCtx.textBaseline = 'middle';
-                pCtx.fillText(skinObj.emoji, 30, 30);
-
-                previewAnimId = requestAnimationFrame(pLoop);
-            }
-            pLoop();
-        }
-
-        function renderSkinsList() {
-            const container = document.getElementById('skinsContainer');
-            container.innerHTML = '';
-            skins.forEach(s => {
-                const card = document.createElement('div');
-                card.className = `skin-card ${player.skin === s.id ? 'active' : ''} ${!s.unlocked ? 'locked' : ''}`;
-                let actionText = s.unlocked ? 'Equipped/Owned' : `Exchange: ${s.price > 0 ? s.price + ' 🔑' : s.req}`;
-                card.innerHTML = `<div style="font-size:11px; font-weight:bold;">${s.emoji} ${s.name}</div><div style="font-size:9px; color:${s.unlocked ? '#00ffaa' : '#ffd700'}; margin-top:2px;">${actionText}</div>`;
-                card.onclick = () => {
-                    animatePreview(s);
-                    if (s.unlocked) {
-                        player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
-                        saveUserData(); renderSkinsList();
-                    } else {
-                        if (s.price > 0 && keysCollected >= s.price) {
-                            keysCollected -= s.price;
-                            s.unlocked = true;
-                            player.skin = s.id; player.color = s.color; player.emoji = s.emoji;
-                            keyCountEl.textContent = keysCollected;
-                            saveUserData(); renderSkinsList();
-                        } else {
-                            alert(s.price > 0 ? 'Not enough Keys 🔑 to unlock this skin!' : 'Unlock this skin via Milestones or Missions!');
-                        }
-                    }
-                };
-                container.appendChild(card);
-            });
-            const activeSkinObj = skins.find(k => k.id === player.skin) || skins[0];
-            animatePreview(activeSkinObj);
-        }
-        function unequipSkin() { 
-            player.skin = 'default'; player.color = '#00f2fe'; player.emoji = '💎'; 
-            saveUserData(); animatePreview(skins[0]); renderSkinsList(); 
-        }
-
-        function spawnTarget() { 
-            let tx = Math.random()*(width-60)+30;
-            let ty = -30;
-            if (selectedGameMode === 'timeline') {
-                ty = Math.random() * (height * 0.6);
-                tx = -30;
-            }
-            
-            let randType = Math.random();
-            let pVal = 50;
-            let pColor = '#00ff7f';
-            let pRadius = 8;
-            if (randType > 0.66) {
-                pVal = 100;
-                pColor = '#00ffff';
-                pRadius = 12;
-            } else if (randType > 0.33) {
-                pVal = 70;
-                pColor = '#0055ff';
-                pRadius = 10;
-            }
-
-            targets.push({ x: tx, y: ty, radius: pRadius, color: pColor, value: pVal, vx: selectedGameMode === 'timeline' ? (Math.random() * 2 + 2) : 0 }); 
-        }
-
-        function spawnObstacle() {
-            if (selectedGameMode === 'timeline') {
-                laserBeams.push({ x: Math.random() * (width - 100) + 50, y: 0, w: 12, h: height, warningTimer: 60, active: false });
-                
-                // Spawn horizontal single-line laser obstacle from left to right side
-                if (Math.random() < 0.6) {
-                    horizontalLasers.push({
-                        x: 0,
-                        y: Math.random() * (height - 100) + 50,
-                        w: width,
-                        h: 12,
-                        warningTimer: 60, // ~1 second warning
-                        activeTimer: 120, // 2 seconds active (at 60fps)
-                        active: false
-                    });
-                }
-            } else {
-                const type = Math.random() > 0.5 ? 'bar' : 'bomb';
-                if (type === 'bar') {
-                    const obsW = Math.random() * 50 + 40;
-                    obstacles.push({ type: 'bar', x: Math.random() * (width - obsW - 40) + 20, y: -30, w: obsW, h: 10 });
-                } else {
-                    obstacles.push({ type: 'bomb', x: Math.random() * (width - 60) + 30, y: -30, radius: 12 });
-                }
-            }
-        }
-        function spawnShieldItem() { shields.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
-        function spawnHeartItem() { heartDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
-        function spawnKeyItem() { keyDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 12 }); }
-        function spawnMagnetItem() { magnetDrops.push({ x: Math.random() * (width - 60) + 30, y: -30, radius: 14 }); }
-
-        setInterval(() => { if (gameRunning) spawnShieldItem(); }, 25000);
-        setInterval(() => { if (gameRunning) spawnHeartItem(); }, 90000); 
-        setInterval(() => { if (gameRunning) spawnKeyItem(); }, 40000);
-        setInterval(() => { if (gameRunning) spawnMagnetItem(); }, 35000);
-        setInterval(() => { 
-            if (gameRunning) { 
-                playTimeSeconds++; 
-                timerDisplay.textContent = formatTime(playTimeSeconds);
-                
-                // Combo decay check over time
-                if (comboTimer > 0) {
-                    comboTimer--;
-                    if (comboTimer === 0 && comboMultiplier > 1.0) {
-                        comboMultiplier = Math.max(1.0, +(comboMultiplier - 0.2).toFixed(1));
-                        comboDisplay.textContent = comboMultiplier.toFixed(1) + 'x';
-                    }
-                }
-
-                checkUnlocks(); 
-            } 
-        }, 1000);
-
-        loadUserData();
-
-        function loop() {
-            ctx.save();
-            ctx.fillStyle = '#050508';
-            ctx.fillRect(0, 0, width, height);
-
-            const now = Date.now();
-
-            if (gameRunning) {
-                currentScrollSpeed = baseScrollSpeed + Math.min(currentRunScore / 10000, 1.2);
-
-                player.x += (player.targetX - player.x) * 0.25;
-                player.y += (player.targetY - player.y) * 0.25;
-
-                player.trail.push({ x: player.x, y: player.y });
-                if (player.trail.length > 8) player.trail.shift();
-
-                ctx.beginPath();
-                player.trail.forEach(pt => ctx.lineTo(pt.x, pt.y));
-                ctx.strokeStyle = player.color; ctx.lineWidth = player.radius * 0.5; ctx.stroke();
-
-                ctx.shadowBlur = 15; ctx.shadowColor = player.color; ctx.fillStyle = '#ffffff';
-                ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2); ctx.fill();
-
-                ctx.shadowBlur = 0;
-                ctx.font = '16px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(player.emoji, player.x, player.y);
-
-                if (player.shieldActive) {
-                    const duration = 7000 + (upgrades.shieldBoost.level * 2000);
-                    const remainingTime = Math.max(0, player.shieldEndTime - now);
-                    if (remainingTime <= 0) {
-                        player.shieldActive = false;
-                    } else {
-                        const progress = remainingTime / duration;
-                        ctx.beginPath();
-                        ctx.arc(player.x, player.y, player.radius + 8, -Math.PI/2, (-Math.PI/2) + (Math.PI * 2 * progress));
-                        ctx.strokeStyle = '#00f2fe'; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = '#00f2fe';
-                        ctx.stroke();
-                    }
-                }
-
-                if (player.magnetActive) {
-                    if (now > player.magnetEndTime) {
-                        player.magnetActive = false;
-                    } else {
-                        ctx.beginPath();
-                        ctx.arc(player.x, player.y, player.radius + 50, 0, Math.PI * 2);
-                        ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
-                    }
-                }
-
-                if (Math.random() < 0.045) spawnTarget();
-                
-                const obstacleSpawnChance = 0.0035 + Math.min(currentRunScore / 30000, 0.01);
-                if (Math.random() < obstacleSpawnChance) spawnObstacle();
-
-                targets.forEach((t, i) => {
-                    if (player.magnetActive) {
-                        let angle = Math.atan2(player.y - t.y, player.x - t.x);
-                        t.x += Math.cos(angle) * 7;
-                        t.y += Math.sin(angle) * 7;
-                    }
-
-                    if (selectedGameMode === 'timeline') {
-                        t.x += t.vx;
-                    } else {
-                        t.y += currentScrollSpeed;
-                    }
-
-                    ctx.fillStyle = t.color; ctx.shadowBlur = 12; ctx.shadowColor = t.color;
-                    ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
-
-                    let collectDist = player.radius + t.radius + (player.magnetActive ? 25 : 0);
-                    if (Math.hypot(player.x - t.x, player.y - t.y) < collectDist) {
-                        comboMultiplier = +(comboMultiplier + 0.2).toFixed(1);
-                        comboTimer = 5; // Reset combo decay window timer to 5 seconds
-                        comboDisplay.textContent = comboMultiplier.toFixed(1) + 'x';
-                        
-                        currentRunScore += Math.floor(t.value * comboMultiplier); 
-                        scoreEl.textContent = currentRunScore; 
-                        playSound('score'); checkUnlocks();
-                        targets.splice(i, 1);
-                    } else if (t.y > height + 50 || t.x > width + 50) {
-                        targets.splice(i, 1);
-                    }
-                });
-
-                // Laser Timeline Obstacles
-                laserBeams.forEach((l, i) => {
-                    if (l.warningTimer > 0) {
-                        l.warningTimer--;
-                        ctx.strokeStyle = 'rgba(255, 0, 85, 0.4)';
-                        ctx.lineWidth = 3;
-                        ctx.setLineDash([6, 6]);
-                        ctx.beginPath();
-                        ctx.moveTo(l.x, 0);
-                        ctx.lineTo(l.x, height);
-                        ctx.stroke();
-                        ctx.setLineDash([]);
-                    } else {
-                        l.active = true;
-                        ctx.strokeStyle = '#ff0055';
-                        ctx.shadowBlur = 15;
-                        ctx.shadowColor = '#ff0055';
-                        ctx.lineWidth = l.w;
-                        ctx.beginPath();
-                        ctx.moveTo(l.x, 0);
-                        ctx.lineTo(l.x, height);
-                        ctx.stroke();
-                        ctx.shadowBlur = 0;
-
-                        if (Math.abs(player.x - l.x) < player.radius + (l.w / 2)) {
-                            triggerDamage();
-                        }
-                    }
-                    if (l.warningTimer <= -90) {
-                        laserBeams.splice(i, 1);
-                    }
-                });
-
-                // Horizontal Single-Line Laser Obstacles (Left to Right)
-                horizontalLasers.forEach((hl, i) => {
-                    if (hl.warningTimer > 0) {
-                        hl.warningTimer--;
-                        ctx.strokeStyle = 'rgba(0, 242, 254, 0.5)';
-                        ctx.lineWidth = 3;
-                        ctx.setLineDash([6, 6]);
-                        ctx.beginPath();
-                        ctx.moveTo(0, hl.y);
-                        ctx.lineTo(width, hl.y);
-                        ctx.stroke();
-                        ctx.setLineDash([]);
-                    } else if (hl.activeTimer > 0) {
-                        hl.activeTimer--;
-                        hl.active = true;
-                        ctx.strokeStyle = '#00f2fe';
-                        ctx.shadowBlur = 15;
-                        ctx.shadowColor = '#00f2fe';
-                        ctx.lineWidth = hl.h;
-                        ctx.beginPath();
-                        ctx.moveTo(0, hl.y);
-                        ctx.lineTo(width, hl.y);
-                        ctx.stroke();
-                        ctx.shadowBlur = 0;
-
-                        if (Math.abs(player.y - hl.y) < player.radius + (hl.h / 2)) {
-                            triggerDamage();
-                        }
-                    } else {
-                        horizontalLasers.splice(i, 1);
-                    }
-                });
-
-                obstacles.forEach((ob, i) => {
-                    ob.y += currentScrollSpeed;
-                    if (ob.type === 'bar') {
-                        ctx.fillStyle = '#ff2a6d'; ctx.shadowBlur = 8; ctx.shadowColor = '#ff2a6d';
-                        ctx.fillRect(ob.x, ob.y, ob.w, ob.h); ctx.shadowBlur = 0;
-
-                        if (player.x + player.radius > ob.x && player.x - player.radius < ob.x + ob.w &&
-                            player.y + player.radius > ob.y && player.y - player.radius < ob.y + ob.h) {
-                            triggerDamage(); obstacles.splice(i, 1);
-                        }
-                    } else {
-                        ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                        ctx.fillText('💣', ob.x, ob.y);
-
-                        if (Math.hypot(player.x - ob.x, player.y - ob.y) < player.radius + ob.radius) {
-                            triggerDamage(); obstacles.splice(i, 1);
-                        }
-                    }
-                    if (ob.y > height + 50) obstacles.splice(i, 1);
-                });
-
-                shields.forEach((sh, i) => {
-                    sh.y += currentScrollSpeed;
-                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillText('🛡️', sh.x, sh.y);
-
-                    if (Math.hypot(player.x - sh.x, player.y - sh.y) < player.radius + sh.radius) {
-                        player.shieldActive = true; 
-                        player.shieldEndTime = Date.now() + (7000 + (upgrades.shieldBoost.level * 2000));
-                        playSound('shield'); shields.splice(i, 1);
-                    } else if (sh.y > height + 50) shields.splice(i, 1);
-                });
-
-                heartDrops.forEach((hd, i) => {
-                    hd.y += currentScrollSpeed;
-                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillText('❤️', hd.x, hd.y);
-
-                    if (Math.hypot(player.x - hd.x, player.y - hd.y) < player.radius + hd.radius) {
-                        hearts++; updateHeartsUI(); playSound('heart'); heartDrops.splice(i, 1);
-                    } else if (hd.y > height + 50) heartDrops.splice(i, 1);
-                });
-
-                keyDrops.forEach((kd, i) => {
-                    kd.y += currentScrollSpeed;
-                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillText('🔑', kd.x, kd.y);
-
-                    if (Math.hypot(player.x - kd.x, player.y - kd.y) < player.radius + kd.radius) {
-                        keysCollected++; keyCountEl.textContent = keysCollected; playSound('key'); checkUnlocks(); saveUserData();
-                        keyDrops.splice(i, 1);
-                    } else if (kd.y > height + 50) keyDrops.splice(i, 1);
-                });
-
-                magnetDrops.forEach((md, i) => {
-                    md.y += currentScrollSpeed;
-                    ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillText('🧲', md.x, md.y);
-
-                    if (Math.hypot(player.x - md.x, player.y - md.y) < player.radius + md.radius) {
-                        player.magnetActive = true;
-                        player.magnetEndTime = Date.now() + 6000;
-                        playSound('magnet');
-                        magnetDrops.splice(i, 1);
-                    } else if (md.y > height + 50) magnetDrops.splice(i, 1);
-                });
-            }
-
-            ctx.restore();
-            requestAnimationFrame(loop);
-        }
-        loop();
     </script>
-    <script src="https://pl30589042.effectivecpmnetwork.com/1d/a5/5a/1da55a7eb02ca4aafcb856cad6d21ab8.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- 1. CORE SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a24); // Gritty urban dusk sky
+        scene.fog = new THREE.FogExp2(0x1a1a24, 0.006);
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const sun = new THREE.DirectionalLight(0xff5722, 1.0); // Orange sunset glow
+        sun.position.set(40, 80, 40);
+        sun.castShadow = true;
+        scene.add(sun);
+
+        // --- 2. MATERIALS ---
+        const roadMat = new THREE.MeshToonMaterial({ color: 0x1f1f1f });
+        const sidewalkMat = new THREE.MeshToonMaterial({ color: 0x666666 });
+        const carMat = new THREE.MeshToonMaterial({ color: 0x144522 }); 
+        const playerMat = new THREE.MeshToonMaterial({ color: 0x0288d1 }); 
+        const armoryMat = new THREE.MeshToonMaterial({ color: 0x37474f }); // Dark steel armory building
+        const gasMat = new THREE.MeshToonMaterial({ color: 0xd32f2f }); 
+        const gangMat = new THREE.MeshToonMaterial({ color: 0xb71c1c }); // Rival gang members (Crimson red)
+
+        // --- 3. BUILD WORLD MAP & FACILITIES ---
+        const road = new THREE.Mesh(new THREE.PlaneGeometry(20, 2500), roadMat);
+        road.rotation.x = -Math.PI / 2;
+        road.receiveShadow = true;
+        scene.add(road);
+
+        const sidewalkL = new THREE.Mesh(new THREE.PlaneGeometry(4, 2500), sidewalkMat);
+        sidewalkL.rotation.x = -Math.PI / 2;
+        sidewalkL.position.set(-12, 0.02, 0);
+        scene.add(sidewalkL);
+
+        const sidewalkR = new THREE.Mesh(new THREE.PlaneGeometry(4, 2500), sidewalkMat);
+        sidewalkR.rotation.x = -Math.PI / 2;
+        sidewalkR.position.set(12, 0.02, 0);
+        scene.add(sidewalkR);
+
+        // Interactable Buildings & Zones
+        const interactableZones = [];
+
+        function createBuilding(x, z, width, height, depth, material, label) {
+            const bldg = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+            bldg.position.set(x, height / 2, z);
+            bldg.castShadow = true;
+            scene.add(bldg);
+            interactableZones.push({ x, z, radius: 9, name: label });
+        }
+
+        // City Layout
+        createBuilding(-20, -40, 12, 14, 20, armoryMat, 'Weapons Armory (Press E to Buy Rifle/Ammo)');
+        createBuilding(20, -90, 10, 10, 18, gasMat, 'Fuel Station & Service Hub');
+        createBuilding(-22, -160, 14, 12, 22, new THREE.MeshToonMaterial({ color: 0x4e342e }), 'Safehouse & Gang Headquarters');
+
+        // --- 4. PLAYER, VEHICLE & RIVAL GANG MEMBERS ---
+        const player = new THREE.Group();
+        const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.6, 0.4), playerMat);
+        bodyMesh.position.y = 0.8;
+        bodyMesh.castShadow = true;
+        player.add(bodyMesh);
+        player.position.set(0, 0, 5);
+        scene.add(player);
+
+        // Vehicle
+        const car = new THREE.Group();
+        const carBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 3.8), carMat);
+        carBody.position.y = 0.45;
+        carBody.castShadow = true;
+        car.add(carBody);
+        car.position.set(0, 0, 0);
+        scene.add(car);
+
+        // Spawn Rival Gang Members in the Open World
+        const enemies = [];
+        for (let i = 0; i < 5; i++) {
+            const enemy = new THREE.Group();
+            const eBody = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.6, 0.4), gangMat);
+            eBody.position.y = 0.8;
+            enemy.add(eBody);
+            enemy.position.set((Math.random() - 0.5) * 10, 0, -100 - (i * 50));
+            scene.add(enemy);
+            enemies.push({ mesh: enemy, health: 100, active: true });
+        }
+
+        // --- 5. GAME STATE & CONTROLS ---
+        let isDriving = false;
+        let currentWeapon = 'Unarmed';
+        let ammo = 0;
+        let health = 100;
+        let currentLocationText = 'City Streets';
+        const input = { w: false, a: false, s: false, d: false };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyW' || e.code === 'ArrowUp') input.w = true;
+            if (e.code === 'KeyS' || e.code === 'ArrowDown') input.s = true;
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') input.a = true;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') input.d = true;
+
+            // Toggle Vehicle Mode
+            if (e.code === 'KeyF') {
+                isDriving = !isDriving;
+                if (isDriving) {
+                    player.visible = false;
+                    car.position.set(player.position.x, 0, player.position.z);
+                    document.getElementById('mode-text').innerText = 'MODE: Driving Car';
+                } else {
+                    player.visible = true;
+                    player.position.set(car.position.x + 2, 0, car.position.z);
+                    document.getElementById('mode-text').innerText = 'MODE: Walking on Foot';
+                }
+            }
+
+            // Interact [E] with Armory or Zones
+            if (e.code === 'KeyE') {
+                interactableZones.forEach(zone => {
+                    const dist = Math.hypot((isDriving ? car.position.x : player.position.x) - zone.x, (isDriving ? car.position.z : player.position.z) - zone.z);
+                    if (dist < 10) {
+                        if (zone.name.includes('Armory')) {
+                            currentWeapon = 'Assault Rifle';
+                            ammo = 120;
+                            alert('Armory Access Granted: You equipped an Assault Rifle with 120 Rounds!');
+                        } else if (zone.name.includes('Fuel')) {
+                            alert('Vehicle refueled completely!');
+                        } else {
+                            alert(`Entered: ${zone.name}`);
+                        }
+                    }
+                });
+            }
+
+            // Shoot Weapon [SPACEBAR]
+            if (e.code === 'Space' && !isDriving && currentWeapon !== 'Unarmed' && ammo > 0) {
+                ammo--;
+                // Check if any rival gang member is in line of sight/close range
+                enemies.forEach(en => {
+                    if (en.active) {
+                        const dist = player.position.distanceTo(en.mesh.position);
+                        if (dist < 25) {
+                            en.health -= 50;
+                            if (en.health <= 0) {
+                                en.mesh.visible = false;
+                                en.active = false;
+                                alert('Rival Gang Member Neutralized!');
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'KeyW' || e.code === 'ArrowUp') input.w = false;
+            if (e.code === 'KeyS' || e.code === 'ArrowDown') input.s = false;
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') input.a = false;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') input.d = false;
+        });
+
+        // --- 6. GAME LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isDriving) {
+                if (input.w) car.position.z -= 0.45;
+                if (input.s) car.position.z += 0.25;
+                if (input.a && car.position.x > -8) car.position.x -= 0.15;
+                if (input.d && car.position.x < 8) car.position.x += 0.15;
+
+                camera.position.x = THREE.MathUtils.lerp(camera.position.x, car.position.x * 0.5, 0.1);
+                camera.position.y = THREE.MathUtils.lerp(camera.position.y, 3.5, 0.1);
+                camera.position.z = THREE.MathUtils.lerp(camera.position.z, car.position.z + 8.0, 0.1);
+                camera.lookAt(car.position.x, car.position.y, car.position.z - 3);
+            } else {
+                const walkSpeed = 0.18;
+                if (input.w) player.position.z -= walkSpeed;
+                if (input.s) player.position.z += walkSpeed;
+                if (input.a) player.position.x -= walkSpeed;
+                if (input.d) player.position.x += walkSpeed;
+
+                camera.position.x = THREE.MathUtils.lerp(camera.position.x, player.position.x, 0.1);
+                camera.position.y = THREE.MathUtils.lerp(camera.position.y, 2.5, 0.1);
+                camera.position.z = THREE.MathUtils.lerp(camera.position.z, player.position.z + 5.0, 0.1);
+                camera.lookAt(player.position.x, player.position.y, player.position.z - 2);
+            }
+
+            // Check Proximity to Zones
+            let nearZone = false;
+            interactableZones.forEach(zone => {
+                const activePos = isDriving ? car.position : player.position;
+                if (Math.hypot(activePos.x - zone.x, activePos.z - zone.z) < 10) {
+                    nearZone = true;
+                    currentLocationText = zone.name;
+                }
+            });
+
+            document.getElementById('interaction-prompt').style.display = nearZone ? 'block' : 'none';
+            document.getElementById('weapon-text').innerText = `WEAPON: ${currentWeapon}`;
+            document.getElementById('ammo-text').innerText = `AMMO: ${ammo}`;
+            document.getElementById('health-text').innerText = `HEALTH: ${health}%`;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 </body>
 </html>
