@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Open-World Gang Wars & Armory - Web Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Open-World Gang Wars & Armory - Mobile Edition</title>
     <style>
         body {
             margin: 0;
@@ -11,49 +11,129 @@
             background-color: #05080c;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
+            -webkit-user-select: none;
         }
         #hud {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 10px;
+            left: 10px;
+            right: 10px;
             color: #fff;
             background: rgba(0, 0, 0, 0.85);
-            padding: 15px 20px;
+            padding: 10px 15px;
             border-radius: 10px;
             border: 2px solid #ff3d00;
             pointer-events: none;
             box-shadow: 0 0 15px rgba(255,61,0,0.4);
+            font-size: 11px;
         }
-        h2 { margin: 0 0 8px 0; font-size: 16px; color: #ff3d00; letter-spacing: 1px; }
-        p { margin: 3px 0; font-size: 13px; color: #ddd; }
+        h2 { margin: 0 0 4px 0; font-size: 13px; color: #ff3d00; letter-spacing: 1px; }
+        p { margin: 2px 0; color: #ddd; }
+        
         #interaction-prompt {
             position: absolute;
-            bottom: 40px;
+            top: 120px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.9);
             color: #ffeb3b;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 6px;
             border: 1px solid #ffeb3b;
             font-weight: bold;
+            font-size: 12px;
             display: none;
             pointer-events: none;
             text-align: center;
+            width: 80%;
+        }
+
+        /* Mobile Touch Controls UI */
+        #touch-controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+        .control-group {
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            grid-template-rows: 60px 60px;
+            gap: 5px;
+            pointer-events: auto;
+        }
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        }
+        .t-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid #fff;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+            touch-action: manipulation;
+        }
+        .t-btn:active {
+            background: rgba(255, 61, 0, 0.7);
+            border-color: #ff3d00;
+        }
+        #btn-up { grid-column: 2; grid-row: 1; }
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
+        #btn-down { grid-column: 2; grid-row: 2; }
+        
+        .action-btn {
+            background: rgba(255, 61, 0, 0.4);
+            border: 2px solid #ff3d00;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+        }
+        .action-btn:active {
+            background: rgba(255, 61, 0, 0.9);
         }
     </style>
 </head>
 <body>
     <div id="hud">
-        <h2>GANG WARS & ARMORY SIMULATOR</h2>
+        <h2>GANG WARS & ARMORY</h2>
         <p id="mode-text">MODE: Walking on Foot</p>
         <p id="weapon-text">WEAPON: Unarmed</p>
-        <p id="ammo-text">AMMO: --</p>
+        <p id="ammo-text">AMMO: 0</p>
         <p id="health-text">HEALTH: 100%</p>
-        <p><b>CONTROLS:</b> [W/A/S/D] Move/Drive | [F] Enter/Exit Car | [E] Interact | [SPACE] Shoot</p>
     </div>
 
-    <div id="interaction-prompt">PRESS [E] TO INTERACT / BUY WEAPONS / REFUEL</div>
+    <div id="interaction-prompt">TAP [INTERACT] TO BUY WEAPONS / REFUEL</div>
+
+    <!-- On-Screen Touch Controls for Mobile -->
+    <div id="touch-controls">
+        <div class="control-group">
+            <button class="t-btn" id="btn-up">▲</button>
+            <button class="t-btn" id="btn-left">◀</button>
+            <button class="t-btn" id="btn-down">▼</button>
+            <button class="t-btn" id="btn-right">▶</button>
+        </div>
+        <div class="action-group">
+            <button class="action-btn" id="btn-interact">INTERACT [E]</button>
+            <button class="action-btn" id="btn-vehicle">CAR [F]</button>
+            <button class="action-btn" id="btn-shoot" style="background:rgba(0,230,118,0.4); border-color:#00e676;">SHOOT [SPACE]</button>
+        </div>
+    </div>
 
     <!-- Import Three.js via CDN -->
     <script type="importmap">
@@ -70,7 +150,7 @@
 
         // --- 1. CORE SETUP ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a24); // Gritty urban dusk sky
+        scene.background = new THREE.Color(0x1a1a24);
         scene.fog = new THREE.FogExp2(0x1a1a24, 0.006);
 
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
@@ -78,14 +158,13 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
         // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
 
-        const sun = new THREE.DirectionalLight(0xff5722, 1.0); // Orange sunset glow
+        const sun = new THREE.DirectionalLight(0xff5722, 1.2);
         sun.position.set(40, 80, 40);
         sun.castShadow = true;
         scene.add(sun);
@@ -95,9 +174,9 @@
         const sidewalkMat = new THREE.MeshToonMaterial({ color: 0x666666 });
         const carMat = new THREE.MeshToonMaterial({ color: 0x144522 }); 
         const playerMat = new THREE.MeshToonMaterial({ color: 0x0288d1 }); 
-        const armoryMat = new THREE.MeshToonMaterial({ color: 0x37474f }); // Dark steel armory building
+        const armoryMat = new THREE.MeshToonMaterial({ color: 0x37474f }); 
         const gasMat = new THREE.MeshToonMaterial({ color: 0xd32f2f }); 
-        const gangMat = new THREE.MeshToonMaterial({ color: 0xb71c1c }); // Rival gang members (Crimson red)
+        const gangMat = new THREE.MeshToonMaterial({ color: 0xb71c1c }); 
 
         // --- 3. BUILD WORLD MAP & FACILITIES ---
         const road = new THREE.Mesh(new THREE.PlaneGeometry(20, 2500), roadMat);
@@ -115,7 +194,6 @@
         sidewalkR.position.set(12, 0.02, 0);
         scene.add(sidewalkR);
 
-        // Interactable Buildings & Zones
         const interactableZones = [];
 
         function createBuilding(x, z, width, height, depth, material, label) {
@@ -123,15 +201,14 @@
             bldg.position.set(x, height / 2, z);
             bldg.castShadow = true;
             scene.add(bldg);
-            interactableZones.push({ x, z, radius: 9, name: label });
+            interactableZones.push({ x, z, radius: 10, name: label });
         }
 
-        // City Layout
-        createBuilding(-20, -40, 12, 14, 20, armoryMat, 'Weapons Armory (Press E to Buy Rifle/Ammo)');
+        createBuilding(-20, -40, 12, 14, 20, armoryMat, 'Weapons Armory (Press Interact to Buy Rifle)');
         createBuilding(20, -90, 10, 10, 18, gasMat, 'Fuel Station & Service Hub');
-        createBuilding(-22, -160, 14, 12, 22, new THREE.MeshToonMaterial({ color: 0x4e342e }), 'Safehouse & Gang Headquarters');
+        createBuilding(-22, -160, 14, 12, 22, new THREE.MeshToonMaterial({ color: 0x4e342e }), 'Gang Safehouse HQ');
 
-        // --- 4. PLAYER, VEHICLE & RIVAL GANG MEMBERS ---
+        // --- 4. PLAYER & ENTITIES ---
         const player = new THREE.Group();
         const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.6, 0.4), playerMat);
         bodyMesh.position.y = 0.8;
@@ -140,7 +217,6 @@
         player.position.set(0, 0, 5);
         scene.add(player);
 
-        // Vehicle
         const car = new THREE.Group();
         const carBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 3.8), carMat);
         carBody.position.y = 0.45;
@@ -149,84 +225,34 @@
         car.position.set(0, 0, 0);
         scene.add(car);
 
-        // Spawn Rival Gang Members in the Open World
         const enemies = [];
         for (let i = 0; i < 5; i++) {
             const enemy = new THREE.Group();
             const eBody = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.6, 0.4), gangMat);
             eBody.position.y = 0.8;
             enemy.add(eBody);
-            enemy.position.set((Math.random() - 0.5) * 10, 0, -100 - (i * 50));
+            enemy.position.set((Math.random() - 0.5) * 10, 0, -80 - (i * 40));
             scene.add(enemy);
             enemies.push({ mesh: enemy, health: 100, active: true });
         }
 
-        // --- 5. GAME STATE & CONTROLS ---
+        // --- 5. GAME LOGIC & CONTROLS ---
         let isDriving = false;
         let currentWeapon = 'Unarmed';
         let ammo = 0;
         let health = 100;
-        let currentLocationText = 'City Streets';
         const input = { w: false, a: false, s: false, d: false };
 
+        // Keyboard support (if a keyboard is attached)
         window.addEventListener('keydown', (e) => {
             if (e.code === 'KeyW' || e.code === 'ArrowUp') input.w = true;
             if (e.code === 'KeyS' || e.code === 'ArrowDown') input.s = true;
             if (e.code === 'KeyA' || e.code === 'ArrowLeft') input.a = true;
             if (e.code === 'KeyD' || e.code === 'ArrowRight') input.d = true;
-
-            // Toggle Vehicle Mode
-            if (e.code === 'KeyF') {
-                isDriving = !isDriving;
-                if (isDriving) {
-                    player.visible = false;
-                    car.position.set(player.position.x, 0, player.position.z);
-                    document.getElementById('mode-text').innerText = 'MODE: Driving Car';
-                } else {
-                    player.visible = true;
-                    player.position.set(car.position.x + 2, 0, car.position.z);
-                    document.getElementById('mode-text').innerText = 'MODE: Walking on Foot';
-                }
-            }
-
-            // Interact [E] with Armory or Zones
-            if (e.code === 'KeyE') {
-                interactableZones.forEach(zone => {
-                    const dist = Math.hypot((isDriving ? car.position.x : player.position.x) - zone.x, (isDriving ? car.position.z : player.position.z) - zone.z);
-                    if (dist < 10) {
-                        if (zone.name.includes('Armory')) {
-                            currentWeapon = 'Assault Rifle';
-                            ammo = 120;
-                            alert('Armory Access Granted: You equipped an Assault Rifle with 120 Rounds!');
-                        } else if (zone.name.includes('Fuel')) {
-                            alert('Vehicle refueled completely!');
-                        } else {
-                            alert(`Entered: ${zone.name}`);
-                        }
-                    }
-                });
-            }
-
-            // Shoot Weapon [SPACEBAR]
-            if (e.code === 'Space' && !isDriving && currentWeapon !== 'Unarmed' && ammo > 0) {
-                ammo--;
-                // Check if any rival gang member is in line of sight/close range
-                enemies.forEach(en => {
-                    if (en.active) {
-                        const dist = player.position.distanceTo(en.mesh.position);
-                        if (dist < 25) {
-                            en.health -= 50;
-                            if (en.health <= 0) {
-                                en.mesh.visible = false;
-                                en.active = false;
-                                alert('Rival Gang Member Neutralized!');
-                            }
-                        }
-                    }
-                });
-            }
+            if (e.code === 'KeyF') toggleVehicle();
+            if (e.code === 'KeyE') triggerInteract();
+            if (e.code === 'Space') triggerShoot();
         });
-
         window.addEventListener('keyup', (e) => {
             if (e.code === 'KeyW' || e.code === 'ArrowUp') input.w = false;
             if (e.code === 'KeyS' || e.code === 'ArrowDown') input.s = false;
@@ -234,9 +260,70 @@
             if (e.code === 'KeyD' || e.code === 'ArrowRight') input.d = false;
         });
 
-        // --- 6. GAME LOOP ---
-        const clock = new THREE.Clock();
+        // Mobile Touch Button Listeners
+        function bindTouch(id, actionDown, actionUp) {
+            const el = document.getElementById(id);
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); actionDown(); });
+            el.addEventListener('touchend', (e) => { e.preventDefault(); if(actionUp) actionUp(); });
+        }
 
+        bindTouch('btn-up', () => input.w = true, () => input.w = false);
+        bindTouch('btn-down', () => input.s = true, () => input.s = false);
+        bindTouch('btn-left', () => input.a = true, () => input.a = false);
+        bindTouch('btn-right', () => input.d = true, () => input.d = false);
+
+        document.getElementById('btn-vehicle').addEventListener('click', toggleVehicle);
+        document.getElementById('btn-interact').addEventListener('click', triggerInteract);
+        document.getElementById('btn-shoot').addEventListener('click', triggerShoot);
+
+        function toggleVehicle() {
+            isDriving = !isDriving;
+            if (isDriving) {
+                player.visible = false;
+                car.position.set(player.position.x, 0, player.position.z);
+                document.getElementById('mode-text').innerText = 'MODE: Driving Car';
+            } else {
+                player.visible = true;
+                player.position.set(car.position.x + 2, 0, car.position.z);
+                document.getElementById('mode-text').innerText = 'MODE: Walking on Foot';
+            }
+        }
+
+        function triggerInteract() {
+            interactableZones.forEach(zone => {
+                const dist = Math.hypot((isDriving ? car.position.x : player.position.x) - zone.x, (isDriving ? car.position.z : player.position.z) - zone.z);
+                if (dist < 12) {
+                    if (zone.name.includes('Armory')) {
+                        currentWeapon = 'Assault Rifle';
+                        ammo = 150;
+                        alert('Armory: Assault Rifle Equipped!');
+                    } else {
+                        alert(`Action completed at: ${zone.name}`);
+                    }
+                }
+            });
+        }
+
+        function triggerShoot() {
+            if (!isDriving && currentWeapon !== 'Unarmed' && ammo > 0) {
+                ammo--;
+                enemies.forEach(en => {
+                    if (en.active) {
+                        const dist = player.position.distanceTo(en.mesh.position);
+                        if (dist < 30) {
+                            en.health -= 50;
+                            if (en.health <= 0) {
+                                en.mesh.visible = false;
+                                en.active = false;
+                                alert('Gang Member Neutralized!');
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- 6. GAME LOOP ---
         function animate() {
             requestAnimationFrame(animate);
 
@@ -263,13 +350,11 @@
                 camera.lookAt(player.position.x, player.position.y, player.position.z - 2);
             }
 
-            // Check Proximity to Zones
             let nearZone = false;
             interactableZones.forEach(zone => {
                 const activePos = isDriving ? car.position : player.position;
-                if (Math.hypot(activePos.x - zone.x, activePos.z - zone.z) < 10) {
+                if (Math.hypot(activePos.x - zone.x, activePos.z - zone.z) < 12) {
                     nearZone = true;
-                    currentLocationText = zone.name;
                 }
             });
 
