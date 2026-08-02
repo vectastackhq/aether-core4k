@@ -3,376 +3,521 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Open-World Gang Wars & Armory - Mobile Edition</title>
+    <title>Aether Core 4K - Ultimate Edition</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #05080c;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * {
+            box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            touch-action: none;
         }
-        #hud {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            color: #fff;
-            background: rgba(0, 0, 0, 0.85);
-            padding: 10px 15px;
-            border-radius: 10px;
-            border: 2px solid #ff3d00;
-            pointer-events: none;
-            box-shadow: 0 0 15px rgba(255,61,0,0.4);
-            font-size: 11px;
-        }
-        h2 { margin: 0 0 4px 0; font-size: 13px; color: #ff3d00; letter-spacing: 1px; }
-        p { margin: 2px 0; color: #ddd; }
-        
-        #interaction-prompt {
-            position: absolute;
-            top: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: #ffeb3b;
-            padding: 8px 15px;
-            border-radius: 6px;
-            border: 1px solid #ffeb3b;
-            font-weight: bold;
-            font-size: 12px;
-            display: none;
-            pointer-events: none;
-            text-align: center;
-            width: 80%;
-        }
-
-        /* Mobile Touch Controls UI */
-        #touch-controls {
-            position: absolute;
-            bottom: 20px;
+        body, html {
+            margin: 0;
+            padding: 0;
             width: 100%;
+            height: 100%;
+            background-color: #030712;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 100%;
             display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-            box-sizing: border-box;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.25);
+        }
+        #uiOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
-        }
-        .control-group {
-            display: grid;
-            grid-template-columns: 60px 60px 60px;
-            grid-template-rows: 60px 60px;
-            gap: 5px;
-            pointer-events: auto;
-        }
-        .action-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            pointer-events: auto;
+            justify-content: space-between;
+            padding: 20px;
         }
-        .t-btn {
-            background: rgba(255, 255, 255, 0.25);
-            border: 2px solid #fff;
-            color: #fff;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 12px;
+        .hud-row {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            outline: none;
-            touch-action: manipulation;
-        }
-        .t-btn:active {
-            background: rgba(255, 61, 0, 0.7);
-            border-color: #ff3d00;
-        }
-        #btn-up { grid-column: 2; grid-row: 1; }
-        #btn-left { grid-column: 1; grid-row: 2; }
-        #btn-right { grid-column: 3; grid-row: 2; }
-        #btn-down { grid-column: 2; grid-row: 2; }
-        
-        .action-btn {
-            background: rgba(255, 61, 0, 0.4);
-            border: 2px solid #ff3d00;
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 10px;
+            justify-content: space-between;
+            width: 100%;
+            color: #00f3ff;
             font-weight: bold;
-            font-size: 14px;
-            text-align: center;
+            font-size: 1.1rem;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.7);
         }
-        .action-btn:active {
-            background: rgba(255, 61, 0, 0.9);
+        #menuScreen, #skinScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2, 6, 23, 0.96);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2.8rem;
+            color: #00f3ff;
+            margin-bottom: 5px;
+            text-shadow: 0 0 25px rgba(0, 243, 255, 0.9);
+            letter-spacing: 3px;
+        }
+        .subtitle {
+            color: #f43f5e;
+            font-size: 0.9rem;
+            letter-spacing: 6px;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #94a3b8;
+            max-width: 420px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #00f3ff 0%, #3b82f6 100%);
+            color: #020617;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 35px;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+            transition: transform 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 8px;
+        }
+        .btn:active {
+            transform: scale(0.93);
+        }
+        .skin-grid {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .skin-card {
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            width: 90px;
+            background: #0f172a;
+            transition: all 0.3s;
+        }
+        .skin-card.selected {
+            border-color: #00f3ff;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
         }
     </style>
 </head>
 <body>
-    <div id="hud">
-        <h2>GANG WARS & ARMORY</h2>
-        <p id="mode-text">MODE: Walking on Foot</p>
-        <p id="weapon-text">WEAPON: Unarmed</p>
-        <p id="ammo-text">AMMO: 0</p>
-        <p id="health-text">HEALTH: 100%</p>
-    </div>
 
-    <div id="interaction-prompt">TAP [INTERACT] TO BUY WEAPONS / REFUEL</div>
-
-    <!-- On-Screen Touch Controls for Mobile -->
-    <div id="touch-controls">
-        <div class="control-group">
-            <button class="t-btn" id="btn-up">▲</button>
-            <button class="t-btn" id="btn-left">◀</button>
-            <button class="t-btn" id="btn-down">▼</button>
-            <button class="t-btn" id="btn-right">▶</button>
+<div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="uiOverlay" style="display: none;">
+        <div class="hud-row">
+            <div id="scoreDisplay">SCORE: 0</div>
+            <div id="waveDisplay">SECTOR: 1</div>
         </div>
-        <div class="action-group">
-            <button class="action-btn" id="btn-interact">INTERACT [E]</button>
-            <button class="action-btn" id="btn-vehicle">CAR [F]</button>
-            <button class="action-btn" id="btn-shoot" style="background:rgba(0,230,118,0.4); border-color:#00e676;">SHOOT [SPACE]</button>
+        <div class="hud-row">
+            <div id="healthDisplay">SHIELD: 100%</div>
+            <div id="weaponDisplay">WEAPON: PLASMA DUAL</div>
         </div>
     </div>
 
-    <!-- Import Three.js via CDN -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
+    <!-- MAIN MENU -->
+    <div id="menuScreen">
+        <h1>AETHER CORE 4K</h1>
+        <div class="subtitle">ADVANCED MATRIX DEFENSE</div>
+        <p>Pilot your customized craft through high-velocity cosmic sectors. Annihilate anomaly swarms, collect core shards, and claim ultimate supremacy.</p>
+        <button class="btn" onclick="startGame()">START MISSION</button>
+        <button class="btn" style="background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);" onclick="openSkins()">SELECT SKINS</button>
+    </div>
 
-    <script type="module">
-        import * as THREE from 'three';
+    <!-- SKIN SELECTOR -->
+    <div id="skinScreen" style="display: none;">
+        <h1>HANGAR BAY</h1>
+        <div class="subtitle">CUSTOM SKINS & HULLS</div>
+        <div class="skin-grid">
+            <div class="skin-card selected" onclick="selectSkin(0, '#00f3ff', '#ff0055')">
+                <div style="color: #00f3ff; font-weight:bold;">CYAN VEX</div>
+                <div style="font-size:0.7rem; color:#94a3b8; margin-top:5px;">Standard Issue</div>
+            </div>
+            <div class="skin-card" onclick="selectSkin(1, '#f97316', '#fbbf24')">
+                <div style="color: #f97316; font-weight:bold;">SOLARIS</div>
+                <div style="font-size:0.7rem; color:#94a3b8; margin-top:5px;">Thermal Core</div>
+            </div>
+            <div class="skin-card" onclick="selectSkin(2, '#a855f7', '#38bdf8')">
+                <div style="color: #a855f7; font-weight:bold;">VOID RUNNER</div>
+                <div style="font-size:0.7rem; color:#94a3b8; margin-top:5px;">Phase Matrix</div>
+            </div>
+        </div>
+        <button class="btn" onclick="closeSkins()">CONFIRM HULL</button>
+    </div>
+</div>
 
-        // --- 1. CORE SETUP ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a24);
-        scene.fog = new THREE.FogExp2(0x1a1a24, 0.006);
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const menuScreen = document.getElementById('menuScreen');
+    const skinScreen = document.getElementById('skinScreen');
+    const uiOverlay = document.getElementById('uiOverlay');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const waveDisplay = document.getElementById('waveDisplay');
+    const healthDisplay = document.getElementById('healthDisplay');
+    const weaponDisplay = document.getElementById('weaponDisplay');
 
-        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
-        
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        document.body.appendChild(renderer.domElement);
+    let gameRunning = false;
+    let score = 0;
+    let wave = 1;
+    let playerHealth = 100;
+    let particles = [];
+    let bullets = [];
+    let enemies = [];
+    let powerUps = [];
+    let stars = [];
+    let weaponLevel = 1;
 
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
+    // Customization Profile
+    let currentSkin = {
+        primary: '#00f3ff',
+        accent: '#ff0055'
+    };
 
-        const sun = new THREE.DirectionalLight(0xff5722, 1.2);
-        sun.position.set(40, 80, 40);
-        sun.castShadow = true;
-        scene.add(sun);
+    function resizeCanvas() {
+        canvas.width = window.innerWidth > 480 ? 480 : window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-        // --- 2. MATERIALS ---
-        const roadMat = new THREE.MeshToonMaterial({ color: 0x1f1f1f });
-        const sidewalkMat = new THREE.MeshToonMaterial({ color: 0x666666 });
-        const carMat = new THREE.MeshToonMaterial({ color: 0x144522 }); 
-        const playerMat = new THREE.MeshToonMaterial({ color: 0x0288d1 }); 
-        const armoryMat = new THREE.MeshToonMaterial({ color: 0x37474f }); 
-        const gasMat = new THREE.MeshToonMaterial({ color: 0xd32f2f }); 
-        const gangMat = new THREE.MeshToonMaterial({ color: 0xb71c1c }); 
+    let player = {
+        x: canvas.width / 2,
+        y: canvas.height - 120,
+        radius: 22
+    };
 
-        // --- 3. BUILD WORLD MAP & FACILITIES ---
-        const road = new THREE.Mesh(new THREE.PlaneGeometry(20, 2500), roadMat);
-        road.rotation.x = -Math.PI / 2;
-        road.receiveShadow = true;
-        scene.add(road);
+    let isDragging = false;
+    canvas.addEventListener('pointerdown', (e) => { isDragging = true; updatePlayer(e); });
+    canvas.addEventListener('pointermove', (e) => { if (isDragging) updatePlayer(e); });
+    canvas.addEventListener('pointerup', () => { isDragging = false; });
 
-        const sidewalkL = new THREE.Mesh(new THREE.PlaneGeometry(4, 2500), sidewalkMat);
-        sidewalkL.rotation.x = -Math.PI / 2;
-        sidewalkL.position.set(-12, 0.02, 0);
-        scene.add(sidewalkL);
+    function updatePlayer(e) {
+        const rect = canvas.getBoundingClientRect();
+        player.x = e.clientX - rect.left;
+        player.y = e.clientY - rect.top;
+        player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+        player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+    }
 
-        const sidewalkR = new THREE.Mesh(new THREE.PlaneGeometry(4, 2500), sidewalkMat);
-        sidewalkR.rotation.x = -Math.PI / 2;
-        sidewalkR.position.set(12, 0.02, 0);
-        scene.add(sidewalkR);
+    function openSkins() {
+        menuScreen.style.display = 'none';
+        skinScreen.style.display = 'flex';
+    }
 
-        const interactableZones = [];
+    function closeSkins() {
+        skinScreen.style.display = 'none';
+        menuScreen.style.display = 'flex';
+    }
 
-        function createBuilding(x, z, width, height, depth, material, label) {
-            const bldg = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
-            bldg.position.set(x, height / 2, z);
-            bldg.castShadow = true;
-            scene.add(bldg);
-            interactableZones.push({ x, z, radius: 10, name: label });
-        }
-
-        createBuilding(-20, -40, 12, 14, 20, armoryMat, 'Weapons Armory (Press Interact to Buy Rifle)');
-        createBuilding(20, -90, 10, 10, 18, gasMat, 'Fuel Station & Service Hub');
-        createBuilding(-22, -160, 14, 12, 22, new THREE.MeshToonMaterial({ color: 0x4e342e }), 'Gang Safehouse HQ');
-
-        // --- 4. PLAYER & ENTITIES ---
-        const player = new THREE.Group();
-        const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.6, 0.4), playerMat);
-        bodyMesh.position.y = 0.8;
-        bodyMesh.castShadow = true;
-        player.add(bodyMesh);
-        player.position.set(0, 0, 5);
-        scene.add(player);
-
-        const car = new THREE.Group();
-        const carBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 3.8), carMat);
-        carBody.position.y = 0.45;
-        carBody.castShadow = true;
-        car.add(carBody);
-        car.position.set(0, 0, 0);
-        scene.add(car);
-
-        const enemies = [];
-        for (let i = 0; i < 5; i++) {
-            const enemy = new THREE.Group();
-            const eBody = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.6, 0.4), gangMat);
-            eBody.position.y = 0.8;
-            enemy.add(eBody);
-            enemy.position.set((Math.random() - 0.5) * 10, 0, -80 - (i * 40));
-            scene.add(enemy);
-            enemies.push({ mesh: enemy, health: 100, active: true });
-        }
-
-        // --- 5. GAME LOGIC & CONTROLS ---
-        let isDriving = false;
-        let currentWeapon = 'Unarmed';
-        let ammo = 0;
-        let health = 100;
-        const input = { w: false, a: false, s: false, d: false };
-
-        // Keyboard support (if a keyboard is attached)
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'KeyW' || e.code === 'ArrowUp') input.w = true;
-            if (e.code === 'KeyS' || e.code === 'ArrowDown') input.s = true;
-            if (e.code === 'KeyA' || e.code === 'ArrowLeft') input.a = true;
-            if (e.code === 'KeyD' || e.code === 'ArrowRight') input.d = true;
-            if (e.code === 'KeyF') toggleVehicle();
-            if (e.code === 'KeyE') triggerInteract();
-            if (e.code === 'Space') triggerShoot();
+    function selectSkin(index, primaryColor, accentColor) {
+        currentSkin.primary = primaryColor;
+        currentSkin.accent = accentColor;
+        const cards = document.querySelectorAll('.skin-card');
+        cards.forEach((card, idx) => {
+            if (idx === index) card.classList.add('selected');
+            else card.classList.remove('selected');
         });
-        window.addEventListener('keyup', (e) => {
-            if (e.code === 'KeyW' || e.code === 'ArrowUp') input.w = false;
-            if (e.code === 'KeyS' || e.code === 'ArrowDown') input.s = false;
-            if (e.code === 'KeyA' || e.code === 'ArrowLeft') input.a = false;
-            if (e.code === 'KeyD' || e.code === 'ArrowRight') input.d = false;
-        });
+    }
 
-        // Mobile Touch Button Listeners
-        function bindTouch(id, actionDown, actionUp) {
-            const el = document.getElementById(id);
-            el.addEventListener('touchstart', (e) => { e.preventDefault(); actionDown(); });
-            el.addEventListener('touchend', (e) => { e.preventDefault(); if(actionUp) actionUp(); });
+    function initStars() {
+        stars = [];
+        for (let i = 0; i < 90; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2.5,
+                speed: Math.random() * 3 + 1.2
+            });
         }
+    }
 
-        bindTouch('btn-up', () => input.w = true, () => input.w = false);
-        bindTouch('btn-down', () => input.s = true, () => input.s = false);
-        bindTouch('btn-left', () => input.a = true, () => input.a = false);
-        bindTouch('btn-right', () => input.d = true, () => input.d = false);
+    function drawStars() {
+        ctx.fillStyle = '#ffffff';
+        stars.forEach(star => {
+            ctx.globalAlpha = star.size / 3;
+            ctx.fillRect(star.x, star.y, star.size, star.size);
+            star.y += star.speed;
+            if (star.y > canvas.height) star.y = 0;
+        });
+        ctx.globalAlpha = 1.0;
+    }
 
-        document.getElementById('btn-vehicle').addEventListener('click', toggleVehicle);
-        document.getElementById('btn-interact').addEventListener('click', triggerInteract);
-        document.getElementById('btn-shoot').addEventListener('click', triggerShoot);
+    function spawnParticles(x, y, color, count = 18) {
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 9,
+                vy: (Math.random() - 0.5) * 9,
+                radius: Math.random() * 4 + 1,
+                color: color,
+                life: 40
+            });
+        }
+    }
 
-        function toggleVehicle() {
-            isDriving = !isDriving;
-            if (isDriving) {
-                player.visible = false;
-                car.position.set(player.position.x, 0, player.position.z);
-                document.getElementById('mode-text').innerText = 'MODE: Driving Car';
+    function updateParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life--;
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.life / 40;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+        ctx.globalAlpha = 1.0;
+    }
+
+    let shootCounter = 0;
+    function handleWeapons() {
+        shootCounter++;
+        if (shootCounter % 9 === 0) {
+            if (weaponLevel === 1) {
+                bullets.push({ x: player.x, y: player.y - player.radius, vx: 0, vy: -15, radius: 4, color: currentSkin.accent });
+            } else if (weaponLevel === 2) {
+                bullets.push({ x: player.x - 12, y: player.y - player.radius, vx: 0, vy: -15, radius: 4, color: '#38bdf8' });
+                bullets.push({ x: player.x + 12, y: player.y - player.radius, vx: 0, vy: -15, radius: 4, color: '#38bdf8' });
             } else {
-                player.visible = true;
-                player.position.set(car.position.x + 2, 0, car.position.z);
-                document.getElementById('mode-text').innerText = 'MODE: Walking on Foot';
+                bullets.push({ x: player.x, y: player.y - player.radius, vx: 0, vy: -18, radius: 5, color: '#fbbf24' });
+                bullets.push({ x: player.x - 16, y: player.y - player.radius, vx: -2.5, vy: -15, radius: 4, color: '#fbbf24' });
+                bullets.push({ x: player.x + 16, y: player.y - player.radius, vx: 2.5, vy: -15, radius: 4, color: '#fbbf24' });
             }
         }
 
-        function triggerInteract() {
-            interactableZones.forEach(zone => {
-                const dist = Math.hypot((isDriving ? car.position.x : player.position.x) - zone.x, (isDriving ? car.position.z : player.position.z) - zone.z);
-                if (dist < 12) {
-                    if (zone.name.includes('Armory')) {
-                        currentWeapon = 'Assault Rifle';
-                        ammo = 150;
-                        alert('Armory: Assault Rifle Equipped!');
-                    } else {
-                        alert(`Action completed at: ${zone.name}`);
-                    }
-                }
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.x += b.vx;
+            b.y += b.vy;
+            ctx.fillStyle = b.color;
+            ctx.shadowBlur = 14;
+            ctx.shadowColor = b.color;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            if (b.y < 0 || b.x < 0 || b.x > canvas.width) {
+                bullets.splice(i, 1);
+            }
+        }
+    }
+
+    function spawnEntities() {
+        if (Math.random() < 0.035 + (wave * 0.007)) {
+            let typeRand = Math.random();
+            let enType = 'drone';
+            let enHealth = 2;
+            let enRadius = 18;
+            let enColor = '#a855f7';
+
+            if (typeRand > 0.65 && wave >= 2) {
+                enType = 'tank';
+                enHealth = 6;
+                enRadius = 28;
+                enColor = '#f97316';
+            }
+
+            enemies.push({
+                x: Math.random() * (canvas.width - 60) + 30,
+                y: -45,
+                radius: enRadius,
+                speed: (enType === 'tank' ? 1.4 : 2.4) + (wave * 0.25),
+                health: enHealth,
+                maxHealth: enHealth,
+                type: enType,
+                color: enColor
             });
         }
 
-        function triggerShoot() {
-            if (!isDriving && currentWeapon !== 'Unarmed' && ammo > 0) {
-                ammo--;
-                enemies.forEach(en => {
-                    if (en.active) {
-                        const dist = player.position.distanceTo(en.mesh.position);
-                        if (dist < 30) {
-                            en.health -= 50;
-                            if (en.health <= 0) {
-                                en.mesh.visible = false;
-                                en.active = false;
-                                alert('Gang Member Neutralized!');
-                            }
+        if (Math.random() < 0.0025 && powerUps.length === 0) {
+            powerUps.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: -30,
+                radius: 15,
+                speed: 2.2,
+                type: Math.random() > 0.4 ? 'upgrade' : 'heal'
+            });
+        }
+    }
+
+    function updateEntities() {
+        for (let i = powerUps.length - 1; i >= 0; i--) {
+            let p = powerUps[i];
+            p.y += p.speed;
+            ctx.fillStyle = p.type === 'upgrade' ? '#38bdf8' : '#4ade80';
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            let dist = Math.hypot(player.x - p.x, player.y - p.y);
+            if (dist < player.radius + p.radius) {
+                if (p.type === 'upgrade') {
+                    weaponLevel = Math.min(3, weaponLevel + 1);
+                    weaponDisplay.innerText = weaponLevel === 3 ? 'WEAPON: TRI-CORE BLASTER' : 'WEAPON: DUAL MATRIX';
+                } else {
+                    playerHealth = Math.min(100, playerHealth + 40);
+                    healthDisplay.innerText = `SHIELD: ${playerHealth}%`;
+                }
+                spawnParticles(p.x, p.y, ctx.fillStyle, 25);
+                powerUps.splice(i, 1);
+                continue;
+            }
+
+            if (p.y > canvas.height + 40) powerUps.splice(i, 1);
+        }
+
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let en = enemies[i];
+            en.y += en.speed;
+
+            ctx.fillStyle = en.color;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = en.color;
+            ctx.beginPath();
+            ctx.arc(en.x, en.y, en.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            if (en.maxHealth > 2) {
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(en.x - 22, en.y - en.radius - 12, 44, 6);
+                ctx.fillStyle = '#f97316';
+                ctx.fillRect(en.x - 22, en.y - en.radius - 12, (44 * (en.health / en.maxHealth)), 6);
+            }
+
+            let distToPlayer = Math.hypot(player.x - en.x, player.y - en.y);
+            if (distToPlayer < player.radius + en.radius) {
+                playerHealth -= (en.type === 'tank' ? 35 : 20);
+                spawnParticles(en.x, en.y, '#ef4444', 22);
+                enemies.splice(i, 1);
+                healthDisplay.innerText = `SHIELD: ${Math.max(0, playerHealth)}%`;
+                if (playerHealth <= 0) gameOver();
+                continue;
+            }
+
+            for (let j = bullets.length - 1; j >= 0; j--) {
+                let b = bullets[j];
+                let dist = Math.hypot(b.x - en.x, b.y - en.y);
+                if (dist < b.radius + en.radius) {
+                    en.health--;
+                    bullets.splice(j, 1);
+                    if (en.health <= 0) {
+                        spawnParticles(en.x, en.y, en.color, 18);
+                        score += en.type === 'tank' ? 350 : 100;
+                        scoreDisplay.innerText = `SCORE: ${score}`;
+                        
+                        if (score >= wave * 700) {
+                            wave++;
+                            waveDisplay.innerText = `SECTOR: ${wave}`;
                         }
+                        enemies.splice(i, 1);
                     }
-                });
-            }
-        }
-
-        // --- 6. GAME LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
-
-            if (isDriving) {
-                if (input.w) car.position.z -= 0.45;
-                if (input.s) car.position.z += 0.25;
-                if (input.a && car.position.x > -8) car.position.x -= 0.15;
-                if (input.d && car.position.x < 8) car.position.x += 0.15;
-
-                camera.position.x = THREE.MathUtils.lerp(camera.position.x, car.position.x * 0.5, 0.1);
-                camera.position.y = THREE.MathUtils.lerp(camera.position.y, 3.5, 0.1);
-                camera.position.z = THREE.MathUtils.lerp(camera.position.z, car.position.z + 8.0, 0.1);
-                camera.lookAt(car.position.x, car.position.y, car.position.z - 3);
-            } else {
-                const walkSpeed = 0.18;
-                if (input.w) player.position.z -= walkSpeed;
-                if (input.s) player.position.z += walkSpeed;
-                if (input.a) player.position.x -= walkSpeed;
-                if (input.d) player.position.x += walkSpeed;
-
-                camera.position.x = THREE.MathUtils.lerp(camera.position.x, player.position.x, 0.1);
-                camera.position.y = THREE.MathUtils.lerp(camera.position.y, 2.5, 0.1);
-                camera.position.z = THREE.MathUtils.lerp(camera.position.z, player.position.z + 5.0, 0.1);
-                camera.lookAt(player.position.x, player.position.y, player.position.z - 2);
-            }
-
-            let nearZone = false;
-            interactableZones.forEach(zone => {
-                const activePos = isDriving ? car.position : player.position;
-                if (Math.hypot(activePos.x - zone.x, activePos.z - zone.z) < 12) {
-                    nearZone = true;
+                    break;
                 }
-            });
+            }
 
-            document.getElementById('interaction-prompt').style.display = nearZone ? 'block' : 'none';
-            document.getElementById('weapon-text').innerText = `WEAPON: ${currentWeapon}`;
-            document.getElementById('ammo-text').innerText = `AMMO: ${ammo}`;
-            document.getElementById('health-text').innerText = `HEALTH: ${health}%`;
-
-            renderer.render(scene, camera);
+            if (en.y > canvas.height + 50) {
+                enemies.splice(i, 1);
+            }
         }
+    }
 
-        animate();
+    function drawPlayerShip() {
+        ctx.fillStyle = currentSkin.primary;
+        ctx.shadowBlur = 22;
+        ctx.shadowColor = currentSkin.primary;
+        ctx.beginPath();
+        ctx.moveTo(player.x, player.y - player.radius - 6);
+        ctx.lineTo(player.x - player.radius, player.y + player.radius);
+        ctx.lineTo(player.x, player.y + player.radius - 8);
+        ctx.lineTo(player.x + player.radius, player.y + player.radius);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+    function gameLoop() {
+        if (!gameRunning) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawStars();
+        handleWeapons();
+        spawnEntities();
+        updateEntities();
+        updateParticles();
+        drawPlayerShip();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+        score = 0;
+        wave = 1;
+        playerHealth = 100;
+        weaponLevel = 1;
+        bullets = [];
+        enemies = [];
+        powerUps = [];
+        particles = [];
+        scoreDisplay.innerText = `SCORE: 0`;
+        waveDisplay.innerText = `SECTOR: 1`;
+        healthDisplay.innerText = `SHIELD: 100%`;
+        weaponDisplay.innerText = `WEAPON: PLASMA DUAL`;
+        
+        menuScreen.style.display = 'none';
+        uiOverlay.style.display = 'flex';
+        initStars();
+        gameRunning = true;
+        gameLoop();
+    }
+
+    function gameOver() {
+        gameRunning = false;
+        uiOverlay.style.display = 'none';
+        menuScreen.style.display = 'flex';
+        menuScreen.querySelector('h1').innerText = 'HULL BREACHED';
+        menuScreen.querySelector('.subtitle').innerText = 'MISSION FAILED';
+        menuScreen.querySelector('p').innerText = `Final Score: ${score} | Sector Reached: ${wave}\nSelect your custom hull or redeploy matrix.`;
+        menuScreen.querySelectorAll('.btn')[0].innerText = 'REDEPLOY MATRIX';
+    }
+</script>
+
 </body>
 </html>
