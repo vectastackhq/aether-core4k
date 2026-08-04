@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethercore Sky Strike - Complete Modular Edition</title>
+    <title>Ethercore Sky Strike - Ultimate Dogfight Edition</title>
     <style>
         :root {
             --bg-color: #030712;
@@ -67,7 +67,6 @@
 
         .hud-group { display: flex; gap: 10px; }
 
-        /* Terminal Console Overlay at Bottom */
         .terminal-log {
             position: absolute;
             bottom: 0; left: 0;
@@ -244,14 +243,14 @@
         </div>
 
         <!-- Live Coding Terminal Log -->
-        <div id="terminal-log" class="terminal-log">[INIT] System ready. Awaiting pilot command...</div>
+        <div id="terminal-log" class="terminal-log">[INIT] Dogfight telemetry synced. Ready for launch...</div>
 
         <canvas id="gameCanvas" width="480" height="720"></canvas>
 
         <!-- Main Menu Screen -->
         <div id="main-menu" class="screen">
-            <h1>ETHERCORE <br><span style="font-size: 15px; color: var(--text-main);">SKY STRIKE // COMPLETE EDITION</span></h1>
-            <p>// GHOST REPLAY • MODULAR CHASSIS • 100+ SHADERS • DAEMON BOSSES</p>
+            <h1>ETHERCORE <br><span style="font-size: 15px; color: var(--text-main);">SKY STRIKE // DOGFIGHT EDITION</span></h1>
+            <p>// DOGFIGHT JETS • LASER FIRE • BOMBS • 3D COINS • SYNTH BGM</p>
             
             <div class="stats-grid">
                 <div class="stat-box">COINS: <span id="menu-coins">0</span></div>
@@ -261,6 +260,7 @@
             <button class="btn" onclick="startGame()">Initialize Mission</button>
             <button class="btn" onclick="openShop('shades')">Modular Armory & Shop</button>
             <button class="btn" onclick="toggleWeb3Wallet()" id="wallet-btn">[ Connect Web3 Wallet ]</button>
+            <button class="btn" onclick="toggleAudio()" id="audio-btn">[ Audio: ON ]</button>
         </div>
 
         <!-- Shop Screen -->
@@ -308,8 +308,117 @@
         let currentLevel = 1;
         let walletConnected = false;
         let shopTab = 'shades';
+        let audioEnabled = true;
 
-        // Modular Upgrades State
+        let audioCtx = null;
+        let bgmInterval = null;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audio-btn').innerText = audioEnabled ? "[ Audio: ON ]" : "[ Audio: OFF ]";
+            logTerminal(audioEnabled ? "Audio synth engaged." : "Audio muted.");
+            if (!audioEnabled && bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
+            else if (audioEnabled && gameState === 'PLAYING') startBGM();
+        }
+
+        const sfx = {
+            laser: () => {
+                if (!audioEnabled) return;
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+            },
+            enemyLaser: () => {
+                if (!audioEnabled) return;
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+            },
+            explosion: () => {
+                if (!audioEnabled) return;
+                initAudio();
+                const bufferSize = audioCtx.sampleRate * 0.3;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(300, audioCtx.currentTime);
+                filter.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+                noise.start();
+            },
+            powerup: () => {
+                if (!audioEnabled) return;
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            },
+            emp: () => {
+                if (!audioEnabled) return;
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.8);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+            }
+        };
+
+        function startBGM() {
+            if (bgmInterval || !audioEnabled) return;
+            const bassNotes = [110, 110, 146.83, 130.81, 98.00, 110];
+            let step = 0;
+            bgmInterval = setInterval(() => {
+                if (!audioEnabled || gameState !== 'PLAYING') return;
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(bassNotes[step % bassNotes.length], audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.22);
+                step++;
+            }, 250);
+        }
+
         let player = {
             x: 220, y: 600,
             width: 36, height: 48,
@@ -322,24 +431,24 @@
             wings: localStorage.getItem('ec_wings') || 'Single Blaster'
         };
 
-        const keys = {};
         window.addEventListener('keydown', e => {
-            keys[e.code] = true;
             if (e.code === 'Space' && gameState === 'PLAYING') triggerEMP();
         });
-        window.addEventListener('keyup', e => keys[e.code] = false);
 
         canvas.addEventListener('mousemove', e => {
             const rect = canvas.getBoundingClientRect();
             player.x = e.clientX - rect.left - player.width / 2;
+            player.y = e.clientY - rect.top - player.height / 2;
         });
         canvas.addEventListener('touchmove', e => {
             const rect = canvas.getBoundingClientRect();
             player.x = e.touches[0].clientX - rect.left - player.width / 2;
+            player.y = e.touches[0].clientY - rect.top - player.height / 2;
             e.preventDefault();
         }, { passive: false });
 
         let bullets = [];
+        let enemyBullets = [];
         let enemies = [];
         let obstacles = [];
         let boosters = [];
@@ -347,17 +456,14 @@
         let floatingTexts = [];
         let activeBoss = null;
 
-        // Async Ghost Replay System
         let currentRunTrajectory = [];
         let ghostTrajectory = JSON.parse(localStorage.getItem('ec_ghost') || '[]');
         let ghostFrame = 0;
 
-        // Terminal Logger Helper
         function logTerminal(msg) {
             document.getElementById('terminal-log').innerText = `[LOG] ${msg}`;
         }
 
-        // 100+ Skins Database
         const availableSkins = [
             { name: "Default MK-I", color: "#38bdf8", secondary: "#0284c7", price: 0 },
             { name: "Cyber Red", color: "#f43f5e", secondary: "#be123c", price: 50 },
@@ -376,7 +482,6 @@
         }
         let ownedSkins = JSON.parse(localStorage.getItem('ec_owned') || '["Default MK-I"]');
 
-        // Chassis & Wings Upgrades Database
         const chassisList = [
             { name: "Standard Core", speedBonus: 0, price: 0 },
             { name: "Overclocked Chassis", speedBonus: 2, price: 150 },
@@ -421,6 +526,7 @@
                 btn.innerText = "[ Web3 Connected: 0x99B...1A4 ]";
                 btn.style.borderColor = "#10b981";
                 tokens += 25;
+                sfx.powerup();
                 logTerminal("Web3 Wallet linked. +25 $ETHCR airdropped.");
                 createFloatingText("+25 $ETHCR Claimed!", 140, 400, '#10b981');
             } else {
@@ -432,6 +538,7 @@
         }
 
         function startGame() {
+            initAudio();
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('shop-screen').classList.add('hidden');
             document.getElementById('gameover-screen').classList.add('hidden');
@@ -447,6 +554,7 @@
             player.multiShot = false;
             player.empCooldown = 0;
             bullets = [];
+            enemyBullets = [];
             enemies = [];
             obstacles = [];
             boosters = [];
@@ -456,11 +564,13 @@
             currentRunTrajectory = [];
             ghostFrame = 0;
 
-            logTerminal("Mission initiated. Combat sector online.");
+            logTerminal("Mission initiated. Dogfight airspace online.");
             gameState = 'PLAYING';
+            startBGM();
         }
 
         function returnToMenu() {
+            if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
             document.getElementById('gameover-screen').classList.add('hidden');
             document.getElementById('shop-screen').classList.add('hidden');
             document.getElementById('hud').classList.add('hidden');
@@ -476,7 +586,6 @@
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('shop-screen').classList.remove('hidden');
             
-            // Update active tab buttons
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(b => b.classList.remove('active'));
             if(tab === 'shades') buttons[0].classList.add('active');
@@ -570,12 +679,14 @@
         function triggerEMP() {
             if (player.empCooldown > 0) return;
             player.empCooldown = 360;
+            sfx.emp();
             createExplosion(canvas.width/2, canvas.height/2, '#38bdf8', 35);
             createFloatingText("EMP OVERRIDE DEPLOYED!", canvas.width/2 - 90, canvas.height/2, '#38bdf8');
             logTerminal("EMP triggered. Area cleared.");
             
             enemies.forEach(en => createExplosion(en.x, en.y, '#f43f5e'));
             enemies = [];
+            enemyBullets = [];
             if (activeBoss) {
                 activeBoss.hp -= 25;
                 createFloatingText("BOSS -25 HP", activeBoss.x, activeBoss.y, '#f43f5e');
@@ -586,22 +697,19 @@
         function update() {
             if (gameState !== 'PLAYING') return;
 
-            // Apply Chassis speed bonus
-            const chassisObj = chassisList.find(c => c.name === player.chassis) || chassisList[0];
-            let activeSpeed = player.baseSpeed + chassisObj.speedBonus;
-
             if (player.x < 10) player.x = 10;
             if (player.x > canvas.width - player.width - 10) player.x = canvas.width - player.width - 10;
+            if (player.y < 40) player.y = 40;
+            if (player.y > canvas.height - player.height - 45) player.y = canvas.height - player.height - 45;
 
             if (player.empCooldown > 0) player.empCooldown--;
 
-            // Record trajectory for Ghost Replay
             currentRunTrajectory.push({ x: player.x, y: player.y });
 
-            // Apply Wings fire rate
             const wingsObj = wingsList.find(w => w.name === player.wings) || wingsList[0];
             const now = Date.now();
             if (now - lastShot > wingsObj.fireRate) {
+                sfx.laser();
                 if (player.multiShot) {
                     bullets.push({ x: player.x + player.width/2 - 2, y: player.y, vx: 0, vy: -12, color: '#38bdf8' });
                     bullets.push({ x: player.x + 4, y: player.y + 10, vx: -2, vy: -11, color: '#38bdf8' });
@@ -617,7 +725,6 @@
                 if (player.powerTimer <= 0) { player.shield = false; player.multiShot = false; }
             }
 
-            // Boss Encounter Every 3 Levels
             if (currentLevel % 3 === 0 && !activeBoss && enemies.length === 0) {
                 activeBoss = {
                     x: canvas.width/2 - 50, y: -100, targetY: 75,
@@ -644,6 +751,7 @@
                         activeBoss.hp--;
                         bullets.splice(j, 1);
                         if (activeBoss.hp <= 0) {
+                            sfx.explosion();
                             createExplosion(activeBoss.x + 50, activeBoss.y + 30, '#f59e0b', 35);
                             score += 1500 * currentLevel; coins += 120; tokens += 6;
                             activeBoss = null;
@@ -658,18 +766,26 @@
             } else {
                 if (Math.random() < 0.03 + (currentLevel * 0.004)) {
                     enemies.push({
-                        x: Math.random() * (canvas.width - 40), y: -40, width: 36, height: 36,
-                        speed: 2 + currentLevel * 0.3, hp: 1 + Math.floor(currentLevel / 2)
+                        x: Math.random() * (canvas.width - 40), y: -40, width: 38, height: 42,
+                        speed: 2 + currentLevel * 0.25, hp: 1 + Math.floor(currentLevel / 2),
+                        lastEnemyShot: Date.now() + Math.random() * 1000
                     });
                 }
             }
 
-            if (Math.random() < 0.012) {
-                obstacles.push({ x: Math.random() * (canvas.width - 40), y: -40, size: 28, speed: 2, rot: 0, rotSpeed: 0.04 });
+            // Obstacles: Bombs & Drone Seekers
+            if (Math.random() < 0.014) {
+                const isBomb = Math.random() > 0.5;
+                obstacles.push({
+                    x: Math.random() * (canvas.width - 40), y: -40, size: 28,
+                    speed: isBomb ? 1.8 : 2.5, isBomb: isBomb, rot: 0, rotSpeed: 0.05
+                });
             }
-            if (Math.random() < 0.0018) {
+
+            // Boosters (incl. Real 3D Coin look)
+            if (Math.random() < 0.0022) {
                 const types = ['SHIELD', 'MULTI', 'COIN', 'LIFE'];
-                boosters.push({ x: Math.random() * (canvas.width - 30), y: -30, size: 24, type: types[Math.floor(Math.random() * types.length)], speed: 2 });
+                boosters.push({ x: Math.random() * (canvas.width - 30), y: -30, size: 26, type: types[Math.floor(Math.random() * types.length)], speed: 2 });
             }
 
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -677,11 +793,38 @@
                 if (bullets[i].y < -20) bullets.splice(i, 1);
             }
 
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                enemyBullets[i].x += enemyBullets[i].vx;
+                enemyBullets[i].y += enemyBullets[i].vy;
+                if (rectIntersect(player, enemyBullets[i])) {
+                    takeDamage();
+                    enemyBullets.splice(i, 1);
+                    continue;
+                }
+                if (enemyBullets[i].y > canvas.height + 20 || enemyBullets[i].y < -20 || enemyBullets[i].x < 0 || enemyBullets[i].x > canvas.width) {
+                    enemyBullets.splice(i, 1);
+                }
+            }
+
             for (let i = enemies.length - 1; i >= 0; i--) {
                 let en = enemies[i];
                 en.y += en.speed;
+
+                // Enemy Fighter Jet shoots at player
+                if (Date.now() - en.lastEnemyShot > 1600 && en.y > 0 && en.y < 500) {
+                    let angle = Math.atan2((player.y + player.height/2) - (en.y + en.height/2), (player.x + player.width/2) - (en.x + en.width/2));
+                    enemyBullets.push({
+                        x: en.x + en.width/2, y: en.y + en.height,
+                        vx: Math.cos(angle) * 5, vy: Math.sin(angle) * 5,
+                        width: 4, height: 10, color: '#f43f5e'
+                    });
+                    sfx.enemyLaser();
+                    en.lastEnemyShot = Date.now();
+                }
+
                 if (rectIntersect(player, en)) {
                     takeDamage(); enemies.splice(i, 1);
+                    sfx.explosion();
                     createExplosion(en.x, en.y, '#f43f5e'); continue;
                 }
                 for (let j = bullets.length - 1; j >= 0; j--) {
@@ -690,6 +833,7 @@
                         en.hp--; bullets.splice(j, 1);
                         if (en.hp <= 0) {
                             enemies.splice(i, 1); score += 100 * currentLevel; coins += 2;
+                            sfx.explosion();
                             createExplosion(en.x, en.y, '#f59e0b');
                             if (score >= currentLevel * 1500 && currentLevel % 3 !== 0) {
                                 currentLevel++;
@@ -706,6 +850,7 @@
                 obstacles[i].y += obstacles[i].speed; obstacles[i].rot += obstacles[i].rotSpeed;
                 if (circleRectIntersect(obstacles[i], player)) {
                     takeDamage(); obstacles.splice(i, 1);
+                    sfx.explosion();
                     createExplosion(obstacles[i].x, obstacles[i].y, '#94a3b8'); continue;
                 }
                 if (obstacles[i].y > canvas.height + 60) obstacles.splice(i, 1);
@@ -740,6 +885,7 @@
                 return;
             }
             player.hp--;
+            sfx.explosion();
             createExplosion(player.x, player.y, '#f43f5e', 20);
             logTerminal("Warning: Core hull damage sustained.");
             if (player.hp <= 0) {
@@ -750,6 +896,7 @@
         }
 
         function activateBooster(type) {
+            sfx.powerup();
             if (type === 'SHIELD') { player.shield = true; player.powerTimer = 400; createFloatingText("SHIELD ONLINE", player.x, player.y, '#38bdf8'); }
             else if (type === 'MULTI') { player.multiShot = true; player.powerTimer = 350; createFloatingText("TRIPLE BLASTER ENGAGED", player.x, player.y, '#10b981'); }
             else if (type === 'COIN') { coins += 25; createFloatingText("+25 COINS", player.x, player.y, '#f59e0b'); }
@@ -758,6 +905,7 @@
         }
 
         function gameOver() {
+            if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
             gameState = 'GAMEOVER';
             document.getElementById('hud').classList.add('hidden');
             document.getElementById('boss-hud').style.display = 'none';
@@ -765,7 +913,6 @@
             document.getElementById('go-score').innerText = score;
             document.getElementById('go-coins').innerText = coins;
 
-            // Save ghost trajectory if best
             if (score >= highScore) {
                 localStorage.setItem('ec_ghost', JSON.stringify(currentRunTrajectory));
                 logTerminal("New high score! Ghost replay uploaded.");
@@ -801,7 +948,6 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Starfield
             ctx.fillStyle = '#ffffff';
             for (let i = 0; i < 40; i++) {
                 let sy = (Date.now() * 0.05 + i * 40) % canvas.height;
@@ -810,7 +956,6 @@
 
             if (gameState !== 'PLAYING') return;
 
-            // Render Ghost Replay Trajectory
             if (ghostTrajectory.length > 0) {
                 let gp = ghostTrajectory[ghostFrame % ghostTrajectory.length];
                 if (gp) {
@@ -849,7 +994,6 @@
             }
             ctx.restore();
 
-            // Boss Rendering
             if (activeBoss) {
                 ctx.fillStyle = '#f43f5e';
                 ctx.fillRect(activeBoss.x, activeBoss.y, activeBoss.width, activeBoss.height);
@@ -859,23 +1003,56 @@
             }
 
             bullets.forEach(b => { ctx.fillStyle = b.color; ctx.fillRect(b.x, b.y, 4, 12); });
+            enemyBullets.forEach(eb => { ctx.fillStyle = eb.color; ctx.fillRect(eb.x, eb.y, eb.width, eb.height); });
 
+            // Opponent Fighter Jets
             enemies.forEach(en => {
-                ctx.fillStyle = '#f43f5e'; ctx.fillRect(en.x, en.y, en.width, en.height);
-                ctx.fillStyle = '#fff'; ctx.fillRect(en.x + 6, en.y + 6, 5, 5); ctx.fillRect(en.x + en.width - 11, en.y + 6, 5, 5);
-            });
-
-            obstacles.forEach(obs => {
-                ctx.save(); ctx.translate(obs.x, obs.y); ctx.rotate(obs.rot);
-                ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.fillStyle = '#1e293b';
-                ctx.beginPath(); ctx.arc(0, 0, obs.size/2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.save();
+                ctx.translate(en.x + en.width/2, en.y + en.height/2);
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.moveTo(0, en.height/2);
+                ctx.lineTo(en.width/2, -en.height/2);
+                ctx.lineTo(0, -en.height/4);
+                ctx.lineTo(-en.width/2, -en.height/2);
+                ctx.closePath();
+                ctx.fill();
                 ctx.restore();
             });
 
+            // Obstacles: Bombs & Drone Seekers
+            obstacles.forEach(obs => {
+                ctx.save(); ctx.translate(obs.x, obs.y); ctx.rotate(obs.rot);
+                if (obs.isBomb) {
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath(); ctx.arc(0, 0, obs.size/2, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.fillRect(-3, -12, 6, 5);
+                } else {
+                    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2; ctx.fillStyle = '#1e293b';
+                    ctx.beginPath(); ctx.arc(0, 0, obs.size/2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                }
+                ctx.restore();
+            });
+
+            // Boosters with Real 3D Coin Look
             boosters.forEach(bs => {
-                ctx.fillStyle = bs.type === 'SHIELD' ? '#38bdf8' : (bs.type === 'MULTI' ? '#10b981' : (bs.type === 'COIN' ? '#f59e0b' : '#f43f5e'));
-                ctx.beginPath(); ctx.arc(bs.x + 12, bs.y + 12, 12, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#000'; ctx.font = 'bold 10px monospace'; ctx.fillText(bs.type[0], bs.x + 8, bs.y + 16);
+                if (bs.type === 'COIN') {
+                    ctx.save();
+                    ctx.translate(bs.x + 13, bs.y + 13);
+                    let grad = ctx.createRadialGradient(-2, -2, 2, 0, 0, 12);
+                    grad.addColorStop(0, '#fef08a');
+                    grad.addColorStop(0.7, '#eab308');
+                    grad.addColorStop(1, '#ca8a04');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#fef9c3'; ctx.lineWidth = 1.5; ctx.stroke();
+                    ctx.fillStyle = '#713f12'; ctx.font = 'bold 11px sans-serif'; ctx.fillText('$', -3, 4);
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = bs.type === 'SHIELD' ? '#38bdf8' : (bs.type === 'MULTI' ? '#10b981' : '#f43f5e');
+                    ctx.beginPath(); ctx.arc(bs.x + 12, bs.y + 12, 12, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#000'; ctx.font = 'bold 10px monospace'; ctx.fillText(bs.type[0], bs.x + 8, bs.y + 16);
+                }
             });
 
             floatingTexts.forEach(ft => {
