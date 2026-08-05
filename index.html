@@ -3,29 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Barbershop - Austin, TX</title>
+    <title>Chutiya Hair Salon | Premium Luxury Grooming</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #121212; color: #ffffff; text-align: center; }
-        header { background-color: #1f1f1f; padding: 40px 20px; }
-        h1 { color: #f39c12; margin-bottom: 10px; }
-        p { font-size: 18px; color: #cccccc; }
-        .btn { display: inline-block; background-color: #f39c12; color: #121212; padding: 12px 25px; text-decoration: none; font-weight: bold; border-radius: 5px; margin-top: 20px; }
-        section { padding: 40px 20px; }
+        :root {
+            --gold: #d4af37;
+            --dark-bg: #0b0b0b;
+            --card-bg: #161616;
+            --text-light: #f4f4f4;
+            --text-gray: #a0a0a0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80') no-repeat center center/cover;
+            padding: 80px 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        header h1 {
+            color: var(--gold);
+            font-size: 2.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background-color: var(--gold);
+            color: var(--dark-bg);
+            padding: 12px 30px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.3s ease;
+        }
+
+        .cta-btn:hover {
+            background-color: #f39c12;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        h2.section-title {
+            text-align: center;
+            color: var(--gold);
+            font-size: 2rem;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .menu-card {
+            background-color: var(--card-bg);
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 30px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--gold);
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .menu-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-light);
+        }
+
+        .menu-price {
+            font-size: 1.25rem;
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .menu-desc {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+        }
+
+        footer {
+            background-color: #050505;
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            border-top: 1px solid #222;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Riverside Cuts & Styling</h1>
-        <p>The Best Grooming & Hair Styling in Austin</p>
-        <a href="tel:5125550198" class="btn">Call Now to Book</a>
+        <h1>Chutiya Hair Salon</h1>
+        <p>Exclusive Men's Grooming, Luxury Fades & Modern Styling</p>
+        <a href="#menu" class="cta-btn">View Services Menu</a>
     </header>
 
-    <section>
-        <h2>Our Services</h2>
-        <p>Classic Haircut | Beard Trim | Hot Towel Shave</p>
-        <p><strong>Open Monday to Saturday: 9:00 AM - 7:00 PM</strong></p>
-    </section>
+    <div class="container" id="menu">
+        <h2 class="section-title">Master Grooming Menu</h2>
+        
+        <div class="menu-grid">
+            <div class="menu-card">
+                <div class="menu-header">
+                    <span class="menu-title">Signature Haircut & Style</span>
+                    <span class="menu-price">$35</span>
+                </div>
+                <p class="menu-desc">Precision haircut customized to your facial structure, complete with razor neck cleanup and professional styling finish.</p>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-header">
+                    <span class="menu-title">Beard Sculpting & Trim</span>
+                    <span class="menu-price">$25</span>
+                </div>
+                <p class="menu-desc">Expert beard shaping, crisp line-ups with straight razor finish, and organic nourishing beard oil application.</p>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-header">
+                    <span class="menu-title">Hot Towel Royal Shave</span>
+                    <span class="menu-price">$30</span>
+                </div>
+                <p class="menu-desc">Traditional straight razor shave accompanied by soothing warm essential oil-infused hot towels and facial massage.</p>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-header">
+                    <span class="menu-title">Hair & Beard Combo</span>
+                    <span class="menu-price">$55</span>
+                </div>
+                <p class="menu-desc">The complete luxury package combining our signature haircut and professional beard sculpting for the ultimate sharp look.</p>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-header">
+                    <span class="menu-title">Deep Cleansing Facial</span>
+                    <span class="menu-price">$40</span>
+                </div>
+                <p class="menu-desc">Revitalizing skin treatment designed to clear pores, remove impurities, and leave your face feeling refreshed and energized.</p>
+            </div>
+
+            <div class="menu-card">
+                <div class="menu-header">
+                    <span class="menu-title">VIP Grooming Treatment</span>
+                    <span class="menu-price">$85</span>
+                </div>
+                <p class="menu-desc">Full haircut, beard trim, hot towel service, premium facial treatment, and premium hair wash experience.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Chutiya Hair Salon. All Rights Reserved. Crafted for Modern Gentlemen.</p>
+    </footer>
 
 </body>
 </html>
