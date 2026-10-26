@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern E-Commerce Store</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <h1>Vecta Stacks Store</h1>
+        <div class="cart-icon" onclick="toggleCart()">Cart (<span id="cart-count">0</span>)</div>
+    </header>
+
+    <main class="store-container">
+        <section class="products-grid">
+            <!-- Product Card 1 -->
+            <div class="product-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="shirt-front.jpg" alt="Shirt Front">
+                        <div class="product-info">
+                            <h3>Premium Cotton Shirt</h3>
+                            <p class="price">$25.00</p>
+                            <button onclick="addToCart('Premium Cotton Shirt', 25.00)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 2 -->
+            <div class="product-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="jacket-front.jpg" alt="Jacket Front">
+                        <div class="product-info">
+                            <h3>Winter Jacket</h3>
+                            <p class="price">$50.00</p>
+                            <button onclick="addToCart('Winter Jacket', 50.00)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Mazeed products isi structure mein add karen -->
+        </section>
+        
+        <aside id="cart-drawer" class="cart-drawer">
+            <h2>Your Cart</h2>
+            <ul id="cart-items"></ul>
+            <p>Total: $<span id="cart-total">0.00</span></p>
+            <button onclick="checkout()">Checkout via WhatsApp</button>
+        </aside>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
