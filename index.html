@@ -3,52 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern E-Commerce Store</title>
+    <title>Madhu Makkhi Premium Honey Store</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+    <div class="animation-overlay" id="animationOverlay">
+        <div class="honey-drip"></div>
+        <div class="welcome-text">
+            <span>Welcome to</span>
+            <h1>Madhu Makkhi</h1>
+        </div>
+    </div>
+
     <header class="navbar">
-        <h1>Vecta Stacks Store</h1>
-        <div class="cart-icon" onclick="toggleCart()">Cart (<span id="cart-count">0</span>)</div>
+        <div class="logo">
+            <i class="fa-solid fa-honey-pot"></i> Madhu Makkhi
+        </div>
+        <div class="nav-links">
+            <a href="#store">Store</a>
+            <a href="#bundles">Special Offers</a>
+            <div class="cart-icon" onclick="toggleCart()">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span id="cart-count">0</span>
+            </div>
+        </div>
     </header>
 
-    <main class="store-container">
+    <main class="store-container" id="store">
         <section class="products-grid">
-            <!-- Product Card 1 -->
+            
             <div class="product-card">
                 <div class="card-inner">
                     <div class="card-front">
-                        <img src="shirt-front.jpg" alt="Shirt Front">
+                        <img src="jar-1kg.png" alt="1kg Pure Honey" loading="lazy">
                         <div class="product-info">
-                            <h3>Premium Cotton Shirt</h3>
-                            <p class="price">$25.00</p>
-                            <button onclick="addToCart('Premium Cotton Shirt', 25.00)">Add to Cart</button>
+                            <h3>Premium Honey (1kg)</h3>
+                            <p class="price">Rs. 1800</p>
+                            <button class="add-btn" onclick="addToCart('Premium Honey (1kg)', 1800)">Add to Cart</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Product Card 2 -->
             <div class="product-card">
                 <div class="card-inner">
                     <div class="card-front">
-                        <img src="jacket-front.jpg" alt="Jacket Front">
+                        <img src="jar-500g.png" alt="500g Pure Honey" loading="lazy">
                         <div class="product-info">
-                            <h3>Winter Jacket</h3>
-                            <p class="price">$50.00</p>
-                            <button onclick="addToCart('Winter Jacket', 50.00)">Add to Cart</button>
+                            <h3>Pure Honey (500g)</h3>
+                            <p class="price">Rs. 1000</p>
+                            <button class="add-btn" onclick="addToCart('Pure Honey (500g)', 1000)">Add to Cart</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Mazeed products isi structure mein add karen -->
+
+            <div class="product-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="jar-250g.png" alt="250g Pure Honey" loading="lazy">
+                        <div class="product-info">
+                            <h3>Organic Honey (250g)</h3>
+                            <p class="price">Rs. 500</p>
+                            <button class="add-btn" onclick="addToCart('Organic Honey (250g)', 500)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        
+        <section class="bundles-section" id="bundles">
+            <h2>Special Offers</h2>
+            <div class="bundle-card">
+                <div class="bundle-content">
+                    <div class="bundle-info">
+                        <h3>Family Bundle Pack</h3>
+                        <p>Includes: 1kg jar + 500g jar + 250g jar</p>
+                        <p class="bundle-price">Special Price: <span>Rs. 3500</span></p>
+                    </div>
+                    <button class="bundle-add-btn" onclick="addToCart('Family Bundle Pack', 3500)">Add Bundle to Cart</button>
+                </div>
+            </div>
         </section>
         
         <aside id="cart-drawer" class="cart-drawer">
-            <h2>Your Cart</h2>
+            <div class="cart-header">
+                <h2>Your Bag</h2>
+                <i class="fa-solid fa-xmark" onclick="toggleCart()"></i>
+            </div>
             <ul id="cart-items"></ul>
-            <p>Total: $<span id="cart-total">0.00</span></p>
-            <button onclick="checkout()">Checkout via WhatsApp</button>
+            <div class="cart-total">
+                <p>Total: Rs. <span id="cart-total">0</span></p>
+                <button class="checkout-btn" onclick="checkout()">Checkout via WhatsApp</button>
+            </div>
         </aside>
     </main>
 
