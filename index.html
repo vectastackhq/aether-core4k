@@ -1,566 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Madhu Makkhi | Premium Honey Store</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            scroll-behavior: smooth;
-        }
-
-        :root {
-            --primary-honey: #f3b61f;
-            --dark-honey: #b8860b;
-            --deep-black: #0f0d0a;
-            --card-bg: #19140f;
-            --gold-glow: rgba(243, 182, 31, 0.2);
-            --text-light: #f5f0e6;
-            --text-muted: #d0c4b4;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--deep-black);
-            color: var(--text-light);
-            overflow-x: hidden;
-            background-image: radial-gradient(var(--dark-honey) 0.75px, transparent 0.75px), radial-gradient(var(--dark-honey) 0.75px, var(--deep-black) 0.75px);
-            background-size: 30px 30px;
-            background-position: 0 0, 15px 15px;
-        }
-
-        /* Splash Screen / Animation Overlay */
-        .animation-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--deep-black);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            animation: fadeOut 1s ease-in-out 2.5s forwards;
-            border-bottom: 5px solid var(--primary-honey);
-        }
-
-        .honey-drip {
-            width: 80px;
-            height: 120px;
-            background: linear-gradient(to bottom, var(--primary-honey), var(--dark-honey));
-            border-radius: 0 0 40px 40px;
-            box-shadow: 0 0 25px var(--primary-honey);
-            animation: dropAnim 1.5s ease-in-out infinite;
-        }
-
-        .welcome-text {
-            margin-top: 2.5rem;
-            text-align: center;
-            opacity: 0;
-            animation: fadeInText 1s ease-in-out 1s forwards;
-        }
-
-        .welcome-text span {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .welcome-text h1 {
-            font-size: 2.5rem;
-            color: var(--primary-honey);
-            text-shadow: 0 0 15px var(--gold-glow);
-            margin-top: 0.5rem;
-        }
-
-        @keyframes dropAnim {
-            0% { transform: scaleY(1); }
-            50% { transform: scaleY(1.25); filter: brightness(1.2); }
-            100% { transform: scaleY(1); }
-        }
-
-        @keyframes fadeInText {
-            to { opacity: 1; }
-        }
-
-        @keyframes fadeOut {
-            to { visibility: hidden; opacity: 0; pointer-events: none; }
-        }
-
-        /* Navbar */
-        .navbar {
-            background: rgba(25, 20, 15, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1.2rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(243, 182, 31, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--primary-honey);
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            text-shadow: 0 0 10px var(--gold-glow);
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-light);
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary-honey);
-        }
-
-        .cart-icon {
-            position: relative;
-            cursor: pointer;
-            font-size: 1.4rem;
-            color: var(--primary-honey);
-            background: rgba(243, 182, 31, 0.1);
-            padding: 10px;
-            border-radius: 50%;
-            transition: background 0.3s;
-        }
-
-        .cart-icon:hover {
-            background: rgba(243, 182, 31, 0.2);
-        }
-
-        #cart-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--primary-honey);
-            color: var(--deep-black);
-            border-radius: 50%;
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            font-weight: 700;
-        }
-
-        /* Container */
-        .store-container {
-            display: flex;
-            flex-direction: column;
-            padding: 4rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.2rem;
-            color: var(--primary-honey);
-            margin-bottom: 3rem;
-            text-shadow: 0 0 10px var(--gold-glow);
-            font-weight: 700;
-        }
-
-        /* Products Grid */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2.5rem;
-            width: 100%;
-        }
-
-        .product-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(243, 182, 31, 0.15);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .product-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary-honey);
-            box-shadow: 0 15px 35px var(--gold-glow);
-        }
-
-        .product-card img {
-            width: 100%;
-            height: 320px;
-            object-fit: contain;
-            background: linear-gradient(135deg, rgba(243,182,31,0.05), rgba(184,134,11,0.05));
-            padding: 1.5rem;
-        }
-
-        .product-info {
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .product-info h3 {
-            margin-bottom: 0.8rem;
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--text-light);
-        }
-
-        .price {
-            font-weight: 700;
-            color: var(--primary-honey);
-            margin-bottom: 1.5rem;
-            display: block;
-            font-size: 1.3rem;
-            text-shadow: 0 0 8px var(--gold-glow);
-        }
-
-        .add-btn {
-            background: linear-gradient(135deg, var(--primary-honey), var(--dark-honey));
-            color: var(--deep-black);
-            border: none;
-            padding: 0.9rem 2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 700;
-            width: 100%;
-            transition: filter 0.3s ease, transform 0.2s ease;
-        }
-
-        .add-btn:hover {
-            filter: brightness(1.15);
-            transform: scale(1.02);
-        }
-
-        /* Exclusive Special Offers Section */
-        .bundles-section {
-            margin-top: 6rem;
-            text-align: center;
-        }
-
-        .bundle-card {
-            background: linear-gradient(145deg, #1f1810, #14100a);
-            border: 2px solid var(--primary-honey);
-            border-radius: 24px;
-            padding: 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 15px 40px rgba(243, 182, 31, 0.15);
-            max-width: 900px;
-            margin: 0 auto;
-            text-align: left;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .bundle-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .bundle-info h3 {
-            font-size: 2rem;
-            color: var(--primary-honey);
-            margin-bottom: 0.8rem;
-            text-shadow: 0 0 10px var(--gold-glow);
-        }
-
-        .bundle-info p {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-        }
-
-        .bundle-price {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-light);
-            margin-top: 1.2rem !important;
-        }
-
-        .bundle-price span {
-            color: var(--primary-honey);
-            text-shadow: 0 0 10px var(--gold-glow);
-        }
-
-        .bundle-add-btn {
-            background: linear-gradient(135deg, var(--primary-honey), var(--dark-honey));
-            color: var(--deep-black);
-            border: none;
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 700;
-            transition: transform 0.2s ease, filter 0.3s;
-            box-shadow: 0 5px 20px var(--gold-glow);
-            z-index: 1;
-        }
-
-        .bundle-add-btn:hover {
-            filter: brightness(1.15);
-            transform: scale(1.05);
-        }
-
-        /* Cart Drawer */
-        .cart-drawer {
-            width: 0;
-            background: var(--card-bg);
-            border-left: 1px solid rgba(243, 182, 31, 0.2);
-            position: fixed;
-            right: 0;
-            top: 0;
-            height: 100%;
-            overflow-y: auto;
-            transition: width 0.3s ease;
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .cart-drawer.active {
-            width: 420px;
-            padding: 2.5rem;
-        }
-
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid rgba(243, 182, 31, 0.2);
-            padding-bottom: 1rem;
-        }
-
-        .cart-header h2 {
-            color: var(--primary-honey);
-        }
-
-        .cart-header i {
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: var(--text-light);
-            transition: color 0.3s;
-        }
-
-        .cart-header i:hover {
-            color: var(--primary-honey);
-        }
-
-        #cart-items {
-            list-style: none;
-            flex-grow: 1;
-        }
-
-        #cart-items li {
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-
-        .cart-total {
-            border-top: 2px solid var(--primary-honey);
-            padding-top: 1.5rem;
-            text-align: center;
-        }
-
-        .cart-total p {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text-light);
-            margin-bottom: 1.5rem;
-        }
-
-        .cart-total span {
-            color: var(--primary-honey);
-        }
-
-        .checkout-btn {
-            background: #25d366;
-            color: #ffffff;
-            border: none;
-            padding: 1.2rem 2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 700;
-            width: 100%;
-            transition: background 0.3s ease, transform 0.2s;
-            box-shadow: 0 5px 20px rgba(37, 211, 102, 0.3);
-        }
-
-        .checkout-btn:hover {
-            background: #20ba5a;
-            transform: scale(1.02);
-        }
-
-        @media (max-width: 768px) {
-            .navbar { padding: 1.2rem 1.5rem; }
-            .store-container { padding: 2rem 1rem; }
-            .bundle-card { flex-direction: column; text-align: center; gap: 2rem; padding: 2rem; }
-            .cart-drawer.active { width: 100%; padding: 1.5rem; }
-        }
-    </style>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickDraft AI — Smart Reply & Content Generator</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card: #131a26;
+      --border: #223047;
+      --accent: #00f0ff;
+      --accent-hover: #00c8d6;
+      --text: #e6edf7;
+      --muted: #8b9bb4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 640px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      font-size: 1.4rem;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    p.sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      margin-top: 14px;
+    }
+    input, select, textarea {
+      width: 100%;
+      background: #0d131d;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #041017;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .output-box {
+      margin-top: 20px;
+      background: #0d131d;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      display: none;
+    }
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      margin-top: 10px;
+      padding: 9px;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="animation-overlay" id="animationOverlay">
-        <div class="honey-drip"></div>
-        <div class="welcome-text">
-            <span>Welcome to</span>
-            <h1>Madhu Makkhi</h1>
-        </div>
-    </div>
+  <div class="container">
+    <h1>⚡ QuickDraft AI</h1>
+    <p class="sub">Generate professional emails, LinkedIn DMs, and product descriptions in seconds.</p>
 
-    <header class="navbar">
-    <div class="logo" style="display: flex; align-items: center; gap: 10px;">
-        <img src="bee.JPG" alt="Madhu Makkhi Logo" style="height: 45px; width: 45px; object-fit: contain; border-radius: 50%;">
-        <span style="font-size: 20px; font-weight: bold; color: #E0C068; font-family: 'Poppins', sans-serif;">Madhu Makkhi</span>
-    </div>
-    <div class="nav-links">
-        <a href="#store">Store</a>
-        <a href="#offers">Special Offers</a>
-        <div class="cart-icon" onclick="toggleCart()">
-            <i class="fa-solid fa-bag-shopping"></i>
-            <span id="cart-count">0</span>
-        </div>
-    </div>
-</header>
+    <label for="apiKey">Groq API Key (Saved locally on your device)</label>
+    <input type="password" id="apiKey" placeholder="Paste your gsk_... key here" />
 
+    <label for="taskType">Select Task</label>
+    <select id="taskType">
+      <option value="Professional Email Reply">Professional Email Reply</option>
+      <option value="Short LinkedIn Outreach DM">Short LinkedIn Outreach DM</option>
+      <option value="High-Converting Product Description">High-Converting Product Description</option>
+      <option value="Social Media Post">Engaging Social Media Post</option>
+    </select>
 
-    <main class="store-container" id="store">
-        <h2 class="section-title">Pure & Organic Honey Collection</h2>
-        
-        <section class="products-grid">
-            <div class="product-card">
-                <img src="BCEABADB-095C-4302-9B3D-179D7
-6B511F5.PNG" alt="1kg Pure Honey" loading="lazy">
-                <div class="product-info">
-                    <h3>Natural Honey (1kg)</h3>
-                    <span class="price">Rs. 1800</span>
-                    <button class="add-btn" onclick="addToCart('Natual Honey (1kg)', 1800)">Add to Cart</button>
-                </div>
-            </div>
+    <label for="userInput">Details / Context</label>
+    <textarea id="userInput" placeholder="Example: Reply politely to a client asking for a discount on email/calendar management..."></textarea>
 
-            <div class="product-card">
-                <img src="jar-500g.png.PNG" alt="500g Pure Honey" loading="lazy">
-                <div class="product-info">
-                    <h3>Natural Honey (500g)</h3>
-                    <span class="price">Rs. 1000</span>
-                    <button class="add-btn" onclick="addToCart('Natural Honey (500g)', 1000)">Add to Cart</button>
-                </div>
-            </div>
+    <button id="generateBtn" onclick="generateText()">Generate with AI</button>
 
-            <div class="product-card">
-                <img src="Ullubullu.PNG" alt="250g Pure Honey" loading="lazy">
-                <div class="product-info">
-                    <h3>Natural Honey (250g)</h3>
-                    <span class="price">Rs. 549</span>
-                    <button class="add-btn" onclick="addToCart('Natural Honey (250g)', 500)">Add to Cart</button>
-                </div>
-            </div>
-        </section>
-        
-            <section class="bundles-section" id="offers">
-    <h2 class="section-title">Exclusive Special Offer</h2>
-    <div class="bundle-card" style="flex-direction: column; text-align: center;">
-        <img src="Honey.JPG" alt="Family Bundle Pack" style="width: 100%; max-height: 320px; object-fit: contain; margin-bottom: 1.5rem; border-radius: 12px;">
-        <div class="bundle-info" style="width: 100%;">
-            <h3>Family Bundle Pack</h3>
-            <p>Includes: 1kg jar + 500g jar + 250g jar</p>
-            <p class="bundle-price">Special Price: <span>Rs. 2399</span></p>
-        </div>
-        <button class="bundle-add-btn" onclick="addToCart('Family Bundle Pack', 2399)" style="margin-top: 1.5rem; width: 100%;">Add Bundle to Cart</button>
-    </div>
-</section>
+    <div class="output-box" id="outputBox"></div>
+    <button class="copy-btn" id="copyBtn" style="display:none;" onclick="copyResult()">Copy Result</button>
+  </div>
 
-        </section>
-        
-        <aside id="cart-drawer" class="cart-drawer">
-            <div class="cart-header">
-                <h2>Your Bag</h2>
-                <i class="fa-solid fa-xmark" onclick="toggleCart()"></i>
-            </div>
-            <ul id="cart-items"></ul>
-            <div class="cart-total">
-                <p>Total: Rs. <span id="cart-total">0</span></p>
-                <button class="checkout-btn" onclick="checkout()"><i class="fa-brands fa-whatsapp"></i> Checkout via WhatsApp</button>
-            </div>
-        </aside>
-    </main>
+  <script>
+    const keyInput = document.getElementById('apiKey');
+    keyInput.value = localStorage.getItem('groq_api_key') || '';
+    keyInput.addEventListener('input', () => {
+      localStorage.setItem('groq_api_key', keyInput.value.trim());
+    });
 
-    <script>
-        let cart = [];
-        let total = 0;
+    async function generateText() {
+      const apiKey = keyInput.value.trim();
+      const task = document.getElementById('taskType').value;
+      const context = document.getElementById('userInput').value.trim();
+      const btn = document.getElementById('generateBtn');
+      const outputBox = document.getElementById('outputBox');
+      const copyBtn = document.getElementById('copyBtn');
 
-        function toggleCart() {
-            document.getElementById('cart-drawer').classList.toggle('active');
-        }
+      if (!apiKey) return alert('Please paste your Groq API key first.');
+      if (!context) return alert('Please enter some details.');
 
-        function addToCart(name, price) {
-            cart.push({ name, price });
-            total += price;
-            updateCartUI();
-        }
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+      outputBox.style.display = 'none';
+      copyBtn.style.display = 'none';
 
-        function updateCartUI() {
-            document.getElementById('cart-count').innerText = cart.length;
-            let cartItemsList = document.getElementById('cart-items');
-            cartItemsList.innerHTML = '';
-            cart.forEach(item => {
-                let li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${item.name}</span>
-                    <span style="color: var(--primary-honey);">Rs. ${item.price}</span>
-                `;
-                cartItemsList.appendChild(li);
-            });
-            document.getElementById('cart-total').innerText = total;
-        }
+      const prompt = `Write a clear, concise, and ready-to-use ${task} based on these details:\n\n${context}`;
 
-        function checkout() {
-            if (cart.length === 0) {
-                alert("Your bag is empty!");
-                return;
-            }
-            let message = "Hi! I'd like to order: \n";
-            cart.forEach(item => {
-                message += `- ${item.name}: Rs. ${item.price}\n`;
-            });
-            message += `Total Amount: Rs. ${total}`;
-            
-            let whatsappURL = `https://wa.me/923000000000?text=${encodeURIComponent(message)}`;
-            window.open(whatsappURL, '_blank'); 
-        }
-    </script>
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+              { role: 'system', content: 'You are a sharp, practical assistant that writes clean, ready-to-use copy.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.7
+          })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const result = data.choices[0].message.content;
+        outputBox.textContent = result;
+        outputBox.style.display = 'block';
+        copyBtn.style.display = 'block';
+      } catch (err) {
+        outputBox.textContent = 'Error: ' + err.message;
+        outputBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate with AI';
+      }
+    }
+
+    function copyResult() {
+      navigator.clipboard.writeText(document.getElementById('outputBox').textContent);
+      const copyBtn = document.getElementById('copyBtn');
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => (copyBtn.textContent = 'Copy Result'), 1500);
+    }
+  </script>
 </body>
 </html>
